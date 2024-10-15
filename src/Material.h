@@ -40,14 +40,18 @@ class Material {
             diffuse_color = Vec3(1.0, 1.0, 1.0);
         }
 
+
         Vec3 scatter(Vec3 incident, Vec3 normal){
             switch (type){
 
                 case Material_Mirror:
+                    return incident.reflect(normal);
                 
-                case Material_Diffuse_Blinn_Phong:
+                case Material_Glass:
+                    return incident.refract(normal, 1, index_medium);
 
-                return incident.reflect(normal);
+                case Material_Diffuse_Blinn_Phong:
+                    return incident.reflect(normal);
 
 
             }

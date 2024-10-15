@@ -98,7 +98,7 @@ public:
         if (discr >= 0){
             intersection.intersectionExists = true;
             intersection.t = (-b - std::sqrt(discr)) / (2.0 * a); // against self-intersect
-            intersection.intersection = ray.at(intersection.t- 0.00001);
+            intersection.intersection = ray.at(intersection.t);
             intersection.secondintersection = ray.at((-b + std::sqrt(discr)) / (2.0 * a));
             intersection.normal = (ray.at(intersection.t) - m_center) / m_radius;
         }

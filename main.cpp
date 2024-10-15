@@ -168,12 +168,12 @@ void idle () {
 
 void ray_trace_from_camera() {
     int w = glutGet(GLUT_WINDOW_WIDTH)  ,   h = glutGet(GLUT_WINDOW_HEIGHT);
-    w =3; h = 3;
+    //w =64; h = 64;
     std::cout << "Ray tracing a " << w << " x " << h << " image" << std::endl;
     camera.apply();
     Vec3 pos , dir;
     //    unsigned int nsamples = 100;
-    unsigned int nsamples = 1;
+    unsigned int nsamples = 6;
     std::vector< Vec3 > image( w*h , Vec3(0,0,0) );
     for (int y=0; y<h; y++){
         std::clog << "\rScanlines remaining: " << (h-y) << ' ' << std::flush;
@@ -189,7 +189,7 @@ void ray_trace_from_camera() {
             image[x + y*w] /= nsamples;
         }
     }
-    std::cout << "\tDone" << std::endl;
+    std::clog <<  std::flush <<"\tDone" << std::endl;
 
     std::string filename = "./rendu.ppm";
     ofstream f(filename.c_str(), ios::binary);

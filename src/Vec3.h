@@ -9,7 +9,7 @@ class Vec3;
 static inline Vec3 operator + (Vec3 const & a , Vec3 const & b);
 static inline Vec3 operator - (Vec3 const & a , Vec3 const & b);
 static inline Vec3 operator * (float a , Vec3 const & b);
-
+static inline Vec3 operator / (Vec3 const &  a , float b);
 class Vec3 {
 private:
     float mVals[3];
@@ -61,6 +61,9 @@ public:
         mVals[1] /= s;
         mVals[2] /= s;
     }
+
+    Vec3 normalized() const { return Vec3(*this) / length();}
+
     static Vec3 compProduct(Vec3 const & a , Vec3 const & b) {
         return Vec3(a[0]*b[0] , a[1]*b[1] , a[2]*b[2]);
     }
@@ -86,8 +89,17 @@ public:
         return res;
     }
 
-    inline Vec3 reflect(Vec3 N){
-        return *this - (2.0*(Vec3::dot(*this, N)) * N);
+    inline Vec3 reflect(const Vec3 &N) const{
+        return (*this - (2.0*(Vec3::dot(*this, N)) * N));
+    }
+    // https://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
+    Vec3 refract(const Vec3 &N, const float &n1, const float &n2) const{
+        const float n = n1 / n2;
+        const float cosI = -Vec3::dot(N, *this);
+        const float sinT2 = n * n * (1.0 - cosI * cosI);
+        //if(sinT2 > 1.0) return Vector::invalid; // TIR
+        const float cosT = sqrt(1.0 - sinT2);
+        return n * *this + (n * cosI - cosT) * N;
     }
 
     inline Vec3 operator - (){

@@ -72,7 +72,6 @@ public:
         height *= scale[1];
     }
 
-
     RaySquareIntersection intersect(const Ray &ray) const {
         RaySquareIntersection intersection;
         intersection.intersectionExists = false;
@@ -101,10 +100,9 @@ public:
             intersection.intersectionExists = true;
             intersection.u = proj1;
             intersection.v = proj2;
-            intersection.t = t- 0.00001;
+            intersection.t = t;
             intersection.intersection = ray.at(intersection.t);
             intersection.normal = m_normal;
-
         }
     
 

@@ -125,6 +125,8 @@ public:
         RaySceneIntersection result;
         result.intersectionExists = false;
 
+        const float min_offset = 1e-5;
+
         float min_dist = std::numeric_limits<float>::infinity();
 
         // Spheres 
@@ -132,7 +134,7 @@ public:
 
             RaySphereIntersection intersection = spheres[i].intersect(ray);
 
-            if (intersection.intersectionExists && intersection.t < min_dist ){
+            if (intersection.intersectionExists && intersection.t < min_dist && intersection.t >= min_offset){
                 result.intersectionExists = true;
 
 
@@ -147,7 +149,7 @@ public:
 
             RaySquareIntersection intersection = squares[i].intersect(ray);
 
-            if (intersection.intersectionExists && intersection.t < min_dist ){
+            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= min_offset){
                 result.intersectionExists = true;
                 min_dist = intersection.t;
                 result.raySquareIntersection = intersection;
@@ -180,22 +182,32 @@ public:
                 raySceneIntersection.objectIndex
                 );
             mat = mesh.material;
-            std::cout << "\t INTERSECTION \n\t\tpos=(" << raySceneIntersection.get_position() << ")\n\t\tnormal = ("<<raySceneIntersection.get_normal()<< ")" << std::endl;
+
+
+            Vec3 res = mat.scatter(ray.direction(), raySceneIntersection.get_normal());
 
             env_contrib = rayTraceRecursive(
                 Ray(
                     raySceneIntersection.get_position(),
-                    mat.scatter(ray.direction(), raySceneIntersection.get_normal())
+                    res
                 ),
                 NRemainingBounces-1
             );
+            /*
+            std::cout << "\t INTERSECTION \n\t\tpos=(" << raySceneIntersection.get_position() << ")\n\t\tnormal = ("<<raySceneIntersection.get_normal()<< ")" << std::endl;
+            std::cout << "\t\t incident ray: " << ray.direction() << std::endl;
+            std::cout << "\t\t reflected ray: " << res << std::endl;
+            std::cout << "\n\t\t env_contrib: " << env_contrib << std::endl;
+            std::cout << "\n\t\t mat_color: " << mat.diffuse_color << std::endl;
             
+            */
+
             float intensity = env_contrib.length();
 
             return Vec3(
-                env_contrib[0] * mat.ambient_color[0],
-                env_contrib[1] * mat.ambient_color[1],
-                env_contrib[2] * mat.ambient_color[2]
+                env_contrib[0] * mat.diffuse_color[0],
+                env_contrib[1] * mat.diffuse_color[1],
+                env_contrib[2] * mat.diffuse_color[2]
             );
 
 
@@ -210,7 +222,7 @@ public:
     Vec3 rayTrace( Ray const & rayStart ) {
 
         Vec3 color;
-        std::cout << "\n\nNEW RAY   " << std::endl;
+        //std::cout << "\n\nNEW RAY   " << std::endl;
         color = rayTraceRecursive(rayStart , 5 );
         //std::cout << color << std::endl;
         return color;
@@ -242,6 +254,21 @@ public:
             s.material.diffuse_color = Vec3( 1.,1.,1 );
             s.material.specular_color = Vec3( 0.2,0.2,0.2 );
             s.material.shininess = 20;
+        }
+
+        // added 
+
+        {
+            squares.resize( squares.size() + 1 );
+            Square & s = squares[squares.size() - 1];
+            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+            s.translate(Vec3(0., 0., -1.));
+            s.scale(Vec3(2., 2., 1.));
+            s.rotate_x(-90);
+            s.build_arrays();
+            s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
+            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
+            s.material.shininess = 16;
         }
     }
 
