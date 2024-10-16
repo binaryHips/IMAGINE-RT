@@ -173,7 +173,7 @@ void ray_trace_from_camera() {
     camera.apply();
     Vec3 pos , dir;
     //    unsigned int nsamples = 100;
-    unsigned int nsamples = 6;
+    unsigned int nsamples = 10;
     std::vector< Vec3 > image( w*h , Vec3(0,0,0) );
     for (int y=0; y<h; y++){
         std::clog << "\rScanlines remaining: " << (h-y) << ' ' << std::flush;
@@ -240,6 +240,12 @@ void key (unsigned char keyPressed, int x, int y) {
         selected_scene++;
         if( selected_scene >= scenes.size() ) selected_scene = 0;
         break;
+
+    case '8':
+        camera.move(0.0, 0.0, 0.1); break;
+
+    case '5':
+        camera.move(0.0, 0.0, -0.1); break;
     default:
         printUsage ();
         break;

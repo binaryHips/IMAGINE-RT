@@ -25,6 +25,7 @@ class Material {
 
 
         double shininess;
+        float specular;
 
         float index_medium;
         float transparency;
@@ -34,6 +35,7 @@ class Material {
         Material() {
             type = Material_Diffuse_Blinn_Phong;
             shininess = 0.5;
+            specular = 0.0;
             transparency = 0.0;
             index_medium = 1.0;
             ambient_color = Vec3(0., 0., 0.);

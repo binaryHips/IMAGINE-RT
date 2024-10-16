@@ -81,6 +81,8 @@ public:
         Vec3 m_up_vector = vertices[3].position - vertices[0].position;
         Vec3 m_normal = Vec3::cross(m_right_vector, m_up_vector) / width / height;
 
+        // condition for backface culling
+        if (Vec3::dot(m_normal, ray.direction()) > 0) return intersection;
 
         float D = Vec3::dot(m_bottom_left, m_normal);
 
@@ -89,12 +91,14 @@ public:
 
         float t = (D - Vec3::dot(ray.origin(), m_normal)) / dot_dir_norm;
 
-
         Vec3 v = ray.at(t) - m_bottom_left;
 
         float proj1 = Vec3::dot(m_right_vector, v) / width;
         float proj2 = Vec3::dot(m_up_vector, v) / height;
         
+
+
+
         if (t > 0 && (proj1<width&&proj1>0)&&(proj2<height&&proj2>0)){
 
             intersection.intersectionExists = true;

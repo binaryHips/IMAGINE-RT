@@ -6,10 +6,15 @@
 #include "Mesh.h"
 #include "Sphere.h"
 #include "Square.h"
-
+#include <random>
 
 #include <GL/glut.h>
 
+
+float randomFloat()
+{   // in (-1, 1)
+    return (float)(rand()) * (2.0 / (float)(RAND_MAX)) - 1.0;
+}
 
 enum LightType {
     LightType_Spherical,
@@ -31,6 +36,10 @@ struct Light {
 
     Light() : powerCorrection(1.0) {}
 
+    Vec3 getRandomTarget(){
+        // simple cube light
+        return pos + Vec3(randomFloat(), randomFloat(), randomFloat()) * radius;
+    }
 };
 
 enum INTERSECTION_TYPE {
@@ -137,7 +146,6 @@ public:
             if (intersection.intersectionExists && intersection.t < min_dist && intersection.t >= min_offset){
                 result.intersectionExists = true;
 
-
                 min_dist = intersection.t;
                 result.raySphereIntersection = intersection;
                 result.typeOfIntersectedObject = INTERSECTION_SPHERE;
@@ -162,15 +170,38 @@ public:
         return result;
     }
 
+    bool computeOcclusion(Ray const & ray) { // TODO how to compute for trnasparent objects?
+        const float min_offset = 1e-6;
+        // Spheres 
+        for (int i = 0; i<spheres.size(); ++i){
+
+            RaySphereIntersection intersection = spheres[i].intersect(ray);
+
+            if (intersection.intersectionExists && intersection.t >= min_offset){
+                return true;
+            }
+        }
+        // Squares 
+        for (int i = 0; i<squares.size(); ++i){
+
+            RaySquareIntersection intersection = squares[i].intersect(ray);
+
+            if (intersection.intersectionExists && intersection.t >= min_offset){
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 
-
-
-    Vec3 rayTraceRecursive( Ray ray , int NRemainingBounces ) {
+const int N_OCCLUSION_RAYS = 6; //6;
+    Vec3 rayTraceRecursive( Ray const & ray , int NRemainingBounces ) {
         
         if (NRemainingBounces == 0) return Vec3(0, 0, 0);
 
         Material mat;
+        Vec3 diffuse_contrib;
         Vec3 env_contrib;
 
         RaySceneIntersection raySceneIntersection = computeIntersection(ray);
@@ -184,12 +215,50 @@ public:
             mat = mesh.material;
 
 
-            Vec3 res = mat.scatter(ray.direction(), raySceneIntersection.get_normal());
+            //Blinn-phong
+            if (mat.type == Material_Diffuse_Blinn_Phong){
+                
+                // diffuse
+                for (Light l:lights){
 
+                    for (int i = 0; i < N_OCCLUSION_RAYS; ++i){
+
+                        Vec3 to = l.getRandomTarget() - raySceneIntersection.get_position();
+
+                        if (!computeOcclusion(
+                            Ray(
+                                raySceneIntersection.get_position(),
+                                to //no need to normalize
+                            )
+                            )){
+                            diffuse_contrib = l.material * l.powerCorrection * (1.0 / (Vec3::dot(to, to) * (float)N_OCCLUSION_RAYS)); // light is an inverse squared law
+
+                        }
+                    }
+                }
+                diffuse_contrib[0] *= mat.diffuse_color[0];
+                diffuse_contrib[1] *= mat.diffuse_color[1];
+                diffuse_contrib[2] *= mat.diffuse_color[2];
+
+                env_contrib = rayTraceRecursive(
+                    Ray(
+                        raySceneIntersection.get_position(),
+                        mat.scatter(ray.direction(), raySceneIntersection.get_normal())
+                    ),
+                    NRemainingBounces-1
+                );
+                env_contrib *= mat.specular;
+                diffuse_contrib *= (1.0- mat.specular);
+                //std::cout << "MAT_COLOr  " << mat.diffuse_color <<"  COMPUTED DIFF  " <<  diffuse_contrib << std::endl;
+                return env_contrib + diffuse_contrib;
+
+            }
+
+            //other mats
             env_contrib = rayTraceRecursive(
                 Ray(
                     raySceneIntersection.get_position(),
-                    res
+                    mat.scatter(ray.direction(), raySceneIntersection.get_normal())
                 ),
                 NRemainingBounces-1
             );
@@ -199,21 +268,15 @@ public:
             std::cout << "\t\t reflected ray: " << res << std::endl;
             std::cout << "\n\t\t env_contrib: " << env_contrib << std::endl;
             std::cout << "\n\t\t mat_color: " << mat.diffuse_color << std::endl;
-            
             */
 
-            float intensity = env_contrib.length();
-
-            return Vec3(
-                env_contrib[0] * mat.diffuse_color[0],
-                env_contrib[1] * mat.diffuse_color[1],
-                env_contrib[2] * mat.diffuse_color[2]
-            );
-
-
+            //std::cout << "  ENV   " << env_contrib << "  DIFF  " <<  diffuse_contrib << std::endl;
+            return env_contrib;
         }
 
         // simple sky
+        return Vec3(0, 0, 0);
+
         Vec3 unit_direction = ray.direction();
         float a = 0.5*(unit_direction[1] + 1.0);
         return (1.0-a)*Vec3(1.0, 1.0, 1.0) + a*Vec3(0.5, 0.7, 1.0);
@@ -281,7 +344,7 @@ public:
         {
             lights.resize( lights.size() + 1 );
             Light & light = lights[lights.size() - 1];
-            light.pos = Vec3(-5,5,5);
+            light.pos = Vec3(-3,3,3);
             light.radius = 2.5f;
             light.powerCorrection = 2.f;
             light.type = LightType_Spherical;
@@ -311,7 +374,7 @@ public:
             Light & light = lights[lights.size() - 1];
             light.pos = Vec3( 0.0, 1.5, 0.0 );
             light.radius = 2.5f;
-            light.powerCorrection = 2.f;
+            light.powerCorrection = 7.f;
             light.type = LightType_Spherical;
             light.material = Vec3(1,1,1);
             light.isInCamSpace = false;
@@ -382,7 +445,7 @@ public:
             s.material.shininess = 16;
         }
         
-        /*
+        
         { //Front Wall
             squares.resize( squares.size() + 1 );
             Square & s = squares[squares.size() - 1];
@@ -395,7 +458,7 @@ public:
             s.material.specular_color = Vec3( 1.0,1.0,1.0 );
             s.material.shininess = 16;
         }
-        */
+        
 
 
         { //GLASS Sphere
