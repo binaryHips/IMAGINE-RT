@@ -13,7 +13,8 @@
 
 float randomFloat()
 {   // in (-1, 1)
-    return (float)(rand()) * (2.0 / (float)(RAND_MAX)) - 1.0;
+    static thread_local std::mt19937 rng(std::random_device{}());
+    return (float)(rng()) * (2.0 / (float)(rng.max())) - 1.0;
 }
 
 enum LightType {
@@ -36,9 +37,23 @@ struct Light {
 
     Light() : powerCorrection(1.0) {}
 
-    Vec3 getRandomTarget(){
+    Vec3 getRandomTarget() const {
         // simple cube light
         return pos + Vec3(randomFloat(), randomFloat(), randomFloat()) * radius;
+    }
+
+    void draw() const { // simple debug draw for volume of light
+
+        glPointSize(5);   
+        glColor3f(0.1f, 0.1f, 1.0f);
+        glBegin(GL_POINTS);
+
+        for (int i = 0; i < 50; ++i){
+            glVertex3fv(
+                &(getRandomTarget()[0])
+            );
+        }
+        glEnd();
     }
 };
 
@@ -115,6 +130,11 @@ public:
             Square const & square = squares[It];
             square.draw();
         }
+
+        for( unsigned int It = 0 ; It < lights.size() ; ++It ) {
+            Light const & light = lights[It];
+            light.draw();
+        }
     }
 
     Mesh getObject(int type, int idx) const {
@@ -130,7 +150,7 @@ public:
     } 
 
 
-    RaySceneIntersection computeIntersection(Ray const & ray) {
+    RaySceneIntersection computeIntersection(Ray const & ray) const {
         RaySceneIntersection result;
         result.intersectionExists = false;
 
@@ -158,6 +178,10 @@ public:
             RaySquareIntersection intersection = squares[i].intersect(ray);
 
             if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= min_offset){
+
+                // condition for backface culling
+                if (Vec3::dot(intersection.normal, ray.direction()) > 0) return result;
+
                 result.intersectionExists = true;
                 min_dist = intersection.t;
                 result.raySquareIntersection = intersection;
@@ -170,11 +194,16 @@ public:
         return result;
     }
 
-    bool computeOcclusion(Ray const & ray) { // TODO how to compute for trnasparent objects?
+
+
+    bool computeOcclusion(Ray const & ray) const { // TODO how to compute for transparent objects?
         const float min_offset = 1e-6;
+
+        float power = 1.0;
         // Spheres 
         for (int i = 0; i<spheres.size(); ++i){
-
+            
+            if (spheres[i].material.type == Material_Glass) continue;
             RaySphereIntersection intersection = spheres[i].intersect(ray);
 
             if (intersection.intersectionExists && intersection.t >= min_offset){
@@ -196,7 +225,7 @@ public:
 
 
 const int N_OCCLUSION_RAYS = 6; //6;
-    Vec3 rayTraceRecursive( Ray const & ray , int NRemainingBounces ) {
+    Vec3 rayTraceRecursive( Ray const & ray , int NRemainingBounces ) const {
         
         if (NRemainingBounces == 0) return Vec3(0, 0, 0);
 
@@ -282,7 +311,7 @@ const int N_OCCLUSION_RAYS = 6; //6;
         return (1.0-a)*Vec3(1.0, 1.0, 1.0) + a*Vec3(0.5, 0.7, 1.0);
     }
 
-    Vec3 rayTrace( Ray const & rayStart ) {
+    Vec3 rayTrace( Ray const & rayStart ) const {
 
         Vec3 color;
         //std::cout << "\n\nNEW RAY   " << std::endl;
@@ -298,24 +327,15 @@ const int N_OCCLUSION_RAYS = 6; //6;
         lights.clear();
 
         {
-            lights.resize( lights.size() + 1 );
-            Light & light = lights[lights.size() - 1];
-            light.pos = Vec3(-5,5,5);
-            light.radius = 2.5f;
-            light.powerCorrection = 2.f;
-            light.type = LightType_Spherical;
-            light.material = Vec3(1,1,1);
-            light.isInCamSpace = false;
-        }
-        {
             spheres.resize( spheres.size() + 1 );
             Sphere & s = spheres[spheres.size() - 1];
             s.m_center = Vec3(0. , 0. , 0.);
             s.m_radius = 1.f;
             s.build_arrays();
-            s.material.type = Material_Mirror;
-            s.material.diffuse_color = Vec3( 1.,1.,1 );
+            s.material.type = Material_Glass;
+            s.material.diffuse_color = Vec3( 0.3,1.,0.3 );
             s.material.specular_color = Vec3( 0.2,0.2,0.2 );
+            s.material.index_medium = 1.02;
             s.material.shininess = 20;
         }
 
@@ -326,13 +346,51 @@ const int N_OCCLUSION_RAYS = 6; //6;
             Square & s = squares[squares.size() - 1];
             s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
             s.translate(Vec3(0., 0., -1.));
-            s.scale(Vec3(2., 2., 1.));
+            s.scale(Vec3(4., 4., 1.));
             s.rotate_x(-90);
             s.build_arrays();
             s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
             s.material.specular_color = Vec3( 1.0,1.0,1.0 );
             s.material.shininess = 16;
         }
+
+        {
+            squares.resize( squares.size() + 1 );
+            Square & s = squares[squares.size() - 1];
+            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+            s.rotate_y(30);
+            s.translate(Vec3(-1.2, 0., -1.8));
+            s.scale(Vec3(1., 1., 1.));
+            s.build_arrays();
+            s.material.diffuse_color = Vec3( 1.0,0.4,0.6 );
+            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
+            s.material.shininess = 16;
+        }
+        {
+            squares.resize( squares.size() + 1 );
+            Square & s = squares[squares.size() - 1];
+            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+            s.rotate_y(-30);
+            s.translate(Vec3(1.2, 0., -1.8));
+            s.scale(Vec3(1., 1., 1.));
+            s.build_arrays();
+            s.material.diffuse_color = Vec3( 0.4,0.6,0.8 );
+            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
+            s.material.shininess = 16;
+        }
+        // added 
+
+        {
+            lights.resize( lights.size() + 1 );
+            Light & light = lights[lights.size() - 1];
+            light.pos = Vec3(0,3,0);
+            light.radius = 1.0f;
+            light.powerCorrection = 30.0f;
+            light.type = LightType_Spherical;
+            light.material = Vec3(1,1,1);
+            light.isInCamSpace = false;
+        }
+
     }
 
     void setup_single_square() {
@@ -372,9 +430,9 @@ const int N_OCCLUSION_RAYS = 6; //6;
         {
             lights.resize( lights.size() + 1 );
             Light & light = lights[lights.size() - 1];
-            light.pos = Vec3( 0.0, 1.5, 0.0 );
-            light.radius = 2.5f;
-            light.powerCorrection = 7.f;
+            light.pos = Vec3( 0.0, 1.0, 0.0 );
+            light.radius = 2.0f;
+            light.powerCorrection = 25.0f;
             light.type = LightType_Spherical;
             light.material = Vec3(1,1,1);
             light.isInCamSpace = false;
@@ -452,7 +510,7 @@ const int N_OCCLUSION_RAYS = 6; //6;
             s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
             s.translate(Vec3(0., 0., -2.));
             s.scale(Vec3(2., 2., 1.));
-            s.rotate_y(180);
+            //s.rotate_y(-180);
             s.build_arrays();
             s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
             s.material.specular_color = Vec3( 1.0,1.0,1.0 );
@@ -461,7 +519,7 @@ const int N_OCCLUSION_RAYS = 6; //6;
         
 
 
-        { //GLASS Sphere
+        { //GLASS MIRRORED Sphere
 
             spheres.resize( spheres.size() + 1 );
             Sphere & s = spheres[spheres.size() - 1];
@@ -473,11 +531,10 @@ const int N_OCCLUSION_RAYS = 6; //6;
             s.material.specular_color = Vec3( 1.,0.,0. );
             s.material.shininess = 16;
             s.material.transparency = 1.0;
-            s.material.index_medium = 1.4;
         }
 
 
-        { //MIRRORED Sphere
+        { //GLASS Sphere
             spheres.resize( spheres.size() + 1 );
             Sphere & s = spheres[spheres.size() - 1];
             s.m_center = Vec3(-1.0, -1.25, -0.5);
@@ -488,7 +545,7 @@ const int N_OCCLUSION_RAYS = 6; //6;
             s.material.specular_color = Vec3(  1.,1.,1. );
             s.material.shininess = 16;
             s.material.transparency = 0.;
-            s.material.index_medium = 0.;
+            s.material.index_medium = 1.1;
         }
 
     }

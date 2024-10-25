@@ -221,4 +221,40 @@ void screen_space_to_world_space_ray(float u , float v , Vec3 & position , Vec3 
     direction.normalize();
 }
 
+
+// added (for multithreading)
+
+void getInvModelView(GLdouble* mat) { // needs a Gldouble[16]
+    GLdouble modelview[16];
+    glMatrixMode (GL_MODELVIEW);
+    glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
+    gluInvertMatrix( modelview , mat );
+
+}
+
+void getInvProj(GLdouble* mat) {
+
+    GLdouble projection[16];
+    glMatrixMode (GL_PROJECTION);
+    glGetDoublev( GL_PROJECTION_MATRIX, projection );
+    gluInvertMatrix( projection , mat );
+}
+
+void getNearAndFarPlanes(GLdouble* res){
+    glGetDoublev( GL_DEPTH_RANGE , res );
+}
+
+Vec3 cameraSpaceToWorldSpace(const GLdouble* modelviewInverse, const Vec3 & pCS){
+    GLdouble res[4];
+    mult(modelviewInverse , (GLdouble)pCS[0] , (GLdouble)pCS[1] , (GLdouble)pCS[2] , (GLdouble)1.0 , res[0] , res[1] , res[2] , res[3]);
+    return Vec3( res[0] / res[3] , res[1] / res[3] , res[2] / res[3] );
+} 
+
+Vec3 screen_space_to_worldSpace(const GLdouble* modelviewInverse, const GLdouble* projectionInverse, const GLdouble* nearAndFarPlanes, float u , float v ) {
+    GLdouble resInt[4];
+    mult(projectionInverse , (GLdouble)2.f*u - 1.f , -((GLdouble)2.f*v - 1.f) , nearAndFarPlanes[0] , (GLdouble)1.0 , resInt[0] , resInt[1] , resInt[2] , resInt[3]);
+    GLdouble res[4];
+    mult(modelviewInverse , resInt[0] , resInt[1] , resInt[2] , resInt[3] , res[0] , res[1] , res[2] , res[3]);
+    return Vec3( res[0] / res[3] , res[1] / res[3] , res[2] / res[3] );
+}
 #endif // matrixUtilities_H

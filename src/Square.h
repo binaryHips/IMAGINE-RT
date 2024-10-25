@@ -81,9 +81,6 @@ public:
         Vec3 m_up_vector = vertices[3].position - vertices[0].position;
         Vec3 m_normal = Vec3::cross(m_right_vector, m_up_vector) / width / height;
 
-        // condition for backface culling
-        if (Vec3::dot(m_normal, ray.direction()) > 0) return intersection;
-
         float D = Vec3::dot(m_bottom_left, m_normal);
 
         float dot_dir_norm = Vec3::dot(ray.direction(), m_normal);

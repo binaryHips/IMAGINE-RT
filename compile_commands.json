@@ -1,0 +1,17 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-Wall",
+      "-O3",
+      "-I.",
+      "-c",
+      "-o",
+      "main.o",
+      "main.cpp"
+    ],
+    "directory": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT",
+    "file": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/main.cpp",
+    "output": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/main.o"
+  }
+]

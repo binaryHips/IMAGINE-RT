@@ -22,6 +22,12 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <array>
+#include <iterator>
+#include <chrono>
+#include <thread>
+#include <random>
+#include <memory>
 #include <algorithm>
 #include "src/Vec3.h"
 #include "src/Camera.h"
@@ -165,16 +171,118 @@ void idle () {
     glutPostRedisplay ();
 }
 
+std::array< GLdouble, 16 > inv_model_view, inv_proj;
+std::array< GLdouble, 2 >  near_far_planes;
 
-void ray_trace_from_camera() {
-    int w = glutGet(GLUT_WINDOW_WIDTH)  ,   h = glutGet(GLUT_WINDOW_HEIGHT);
-    //w =64; h = 64;
-    std::cout << "Ray tracing a " << w << " x " << h << " image" << std::endl;
-    camera.apply();
+inline int idx_from_coord(int x, int y, int w){
+    return (x + y * w);
+}
+
+
+void ray_trace_square(int w, int h, unsigned int nsamples, Vec3* image, int pos_x, int pos_y, int sizeX, int sizeY){
+
+    static thread_local std::mt19937 rng(std::random_device{}());
+
+    Vec3 pos = cameraSpaceToWorldSpace(inv_model_view.data(), Vec3(0,0,0) );
+    Vec3 dir;
+
+    int p;
+    for (int y=pos_y; y<pos_y+sizeY; y++){
+        for (int x = pos_x; x<pos_x+sizeX; x++) {
+
+            p = idx_from_coord(x,y ,w);
+            for( unsigned int s = 0 ; s < nsamples ; ++s ) {
+
+                float u = ((float)(x) + (float)(rng())/(float)(rng.max())) / w;
+                float v = ((float)(y) + (float)(rng())/(float)(rng.max())) / h;
+                // this is a random uv that belongs to the pixel xy.
+                dir = screen_space_to_worldSpace(inv_model_view.data(), inv_proj.data(), near_far_planes.data(), u,v) - pos;
+                dir.normalize();
+                Vec3 color = scenes[selected_scene].rayTrace( Ray(pos , dir) );
+                image[p] += color;
+            }
+            image[p] /= nsamples;
+        }
+    }
+}
+
+void ray_trace_from_camera_multithreaded(int w, int h, unsigned int nsamples, std::vector < Vec3 > & image){
+    const unsigned int area_size = 60;
+    //std::cout << "conc  " << std::thread::hardware_concurrency() << std::endl;
+    getInvModelView(inv_model_view.data());
+    getInvProj(inv_proj.data());
+    getNearAndFarPlanes(near_far_planes.data());
+    glMatrixMode (GL_MODELVIEW);
+    
+    int n_square_x = h / area_size;
+    int rest_x = w % area_size;
+
+    int n_square_y = h / area_size;
+    int rest_y = h % area_size;
+
+    //TODO hello
+    int n_threads = (n_square_x+1) * (n_square_y+1);
+    /*
+    std::cout << "nX: " << n_square_x << "   nY: " << n_square_y << std::endl;
+    std::cout << "rX: " << rest_x << "   rY: " << rest_y << std::endl;
+    */
+
+    std::thread threads[n_threads];
+
+    //std::shared_ptr<Vec3[]> im_ptr(&image[0]);
+    // full squares
+    for (int i = 0; i < n_square_x; i+=1){
+        for (int j = 0; j < n_square_y; j+=1){
+            
+            threads[idx_from_coord(i, j, n_square_x+1)] = std::thread(
+                ray_trace_square, w, h, nsamples,  &image[0],
+                area_size * i, area_size * j, // pos of square (top left corner)
+                area_size, area_size // size of square
+            );
+        }
+    }
+    
+    // bottom rest
+    int j_last = (n_square_y);
+    for (int i = 0; i < n_square_x; i+=1){
+
+        threads[idx_from_coord(i, j_last, n_square_x+1)] = std::thread(
+            ray_trace_square, w, h, nsamples, &image[0],
+            area_size * i, area_size * j_last, // pos of square (top left corner)
+            area_size, rest_y // size of square
+        );
+
+    }
+    // right rest
+    int i_last = (n_square_x);
+    for (int j = 0; j < n_square_y; j+=1){
+
+        threads[idx_from_coord(i_last, j, n_square_x+1)] = std::thread(
+            ray_trace_square, w, h, nsamples, &image[0],
+            area_size * i_last, area_size * j, // pos of square (top left corner)
+            rest_x, area_size // size of square
+        );
+    }
+
+    // very last, bottom right square
+    threads[idx_from_coord(i_last, j_last, n_square_x+1)] = std::thread(
+        ray_trace_square, w, h, nsamples, &image[0],
+        area_size * i_last, area_size * j_last, // pos of square (top left corner)
+        rest_x, rest_y // size of square
+    );
+    
+    // technically not an accurate countdown because threads
+    std::clog << "\rBlocks remaining: " << n_threads << " / " << n_threads << ' ' << std::flush;
+    for (int t = 0; t < n_threads; ++t){
+        threads[t].join();
+        std::clog << "\rBlocks remaining: " << n_threads - t << " / " << n_threads << ' ' << std::flush;
+    }
+    std::cout << std::endl;
+
+}
+
+void ray_trace_from_camera_single_threaded(int w, int h, unsigned int nsamples, std::vector < Vec3 > & image){
     Vec3 pos , dir;
-    //    unsigned int nsamples = 100;
-    unsigned int nsamples = 10;
-    std::vector< Vec3 > image( w*h , Vec3(0,0,0) );
     for (int y=0; y<h; y++){
         std::clog << "\rScanlines remaining: " << (h-y) << ' ' << std::flush;
         for (int x=0; x<w; x++) {
@@ -189,7 +297,26 @@ void ray_trace_from_camera() {
             image[x + y*w] /= nsamples;
         }
     }
-    std::clog <<  std::flush <<"\tDone" << std::endl;
+}
+
+void ray_trace_from_camera() {
+    int w = glutGet(GLUT_WINDOW_WIDTH)  ,   h = glutGet(GLUT_WINDOW_HEIGHT);
+    //w =64; h = 64;
+    std::cout << "Ray tracing a " << w << " x " << h << " image" << std::endl;
+    camera.apply();
+    Vec3 pos , dir;
+    //    unsigned int nsamples = 100;
+    unsigned int nsamples = 300;
+    std::vector< Vec3 > image( w*h , Vec3(0,0,0) );
+
+    auto start = std::chrono::system_clock::now();
+
+    //ray_trace_from_camera_single_threaded(w, h, nsamples, image);
+    ray_trace_from_camera_multithreaded(w, h, nsamples, image);
+
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::clog <<  std::flush <<"\tDone in " << elapsed_seconds.count() << "s" <<std::endl;
 
     std::string filename = "./rendu.ppm";
     ofstream f(filename.c_str(), ios::binary);
@@ -325,6 +452,8 @@ int main (int argc, char ** argv) {
     glutMouseFunc (mouse);
     key ('?', 0, 0);
 
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE); // for showing big points
+    glEnable(GL_CULL_FACE);
 
     camera.move(0., 0., -3.1);
     selected_scene=0;

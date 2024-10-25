@@ -50,7 +50,7 @@ class Material {
                     return incident.reflect(normal);
                 
                 case Material_Glass:
-                    return incident.refract(normal, 1, index_medium);
+                    return incident.refract(normal, 1.000293 /*IOR air */, index_medium);
 
                 case Material_Diffuse_Blinn_Phong:
                     return incident.reflect(normal);
