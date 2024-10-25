@@ -10,7 +10,7 @@
 # NE PAS OUBLIER D'AJOUTER LA LISTE DES DEPENDANCES A LA FIN DU FICHIER
 
 CIBLE = main
-SRCS =  src/Camera.cpp main.cpp src/Trackball.cpp src/imageLoader.cpp src/Mesh.cpp 
+SRCS =  src/Camera.cpp main.cpp src/Trackball.cpp src/imageLoader.cpp src/Mesh.cpp src/Renderer.cpp src/Postprocess.cpp
 LIBS =  -lglut -lGLU -lGL -lm -lpthread 
 #########################################################"
 
@@ -58,7 +58,20 @@ dep:
 
 # liste des d�pendances g�n�r�e par 'make dep'
 Camera.o: src/Camera.cpp src/Camera.h src/Vec3.h src/Trackball.h
-main.o: main.cpp src/Vec3.h src/Camera.h src/Trackball.h
+main.o: main.cpp src/Vec3.h src/Camera.h src/Vec3.h src/Trackball.h \
+ src/Scene.h src/Mesh.h src/Ray.h src/Line.h src/Triangle.h src/Plane.h \
+ src/Material.h src/imageLoader.h src/Sphere.h src/Square.h \
+ src/Renderer.h src/Vec3.h src/Camera.h src/Color.h src/Postprocess.h \
+ src/imageLoader.h src/Material.h
 Trackball.o: src/Trackball.cpp src/Trackball.h
-
-
+imageLoader.o: src/imageLoader.cpp src/imageLoader.h
+Mesh.o: src/Mesh.cpp src/Mesh.h src/Vec3.h src/Ray.h src/Line.h \
+ src/Triangle.h src/Plane.h src/Material.h src/imageLoader.h
+Renderer.o: src/Renderer.cpp src/Renderer.h src/Vec3.h src/Camera.h \
+ src/Vec3.h src/Trackball.h src/Scene.h src/Mesh.h src/Ray.h src/Line.h \
+ src/Triangle.h src/Plane.h src/Material.h src/imageLoader.h src/Sphere.h \
+ src/Square.h src/Color.h src/Postprocess.h src/matrixUtilities.h
+Postprocess.o: src/Postprocess.cpp src/Vec3.h src/Color.h \
+ src/Postprocess.h src/Renderer.h src/Camera.h src/Vec3.h src/Trackball.h \
+ src/Scene.h src/Mesh.h src/Ray.h src/Line.h src/Triangle.h src/Plane.h \
+ src/Material.h src/imageLoader.h src/Sphere.h src/Square.h

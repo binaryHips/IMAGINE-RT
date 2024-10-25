@@ -1,5 +1,4 @@
-#ifndef SCENE_H
-#define SCENE_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -11,7 +10,7 @@
 #include <GL/glut.h>
 
 
-float randomFloat()
+static float randomUnitFloat()
 {   // in (-1, 1)
     static thread_local std::mt19937 rng(std::random_device{}());
     return (float)(rng()) * (2.0 / (float)(rng.max())) - 1.0;
@@ -39,7 +38,7 @@ struct Light {
 
     Vec3 getRandomTarget() const {
         // simple cube light
-        return pos + Vec3(randomFloat(), randomFloat(), randomFloat()) * radius;
+        return pos + Vec3(randomUnitFloat(), randomUnitFloat(), randomUnitFloat()) * radius;
     }
 
     void draw() const { // simple debug draw for volume of light
@@ -224,7 +223,7 @@ public:
     }
 
 
-const int N_OCCLUSION_RAYS = 6; //6;
+const int N_OCCLUSION_RAYS = 10;
     Vec3 rayTraceRecursive( Ray const & ray , int NRemainingBounces ) const {
         
         if (NRemainingBounces == 0) return Vec3(0, 0, 0);
@@ -551,7 +550,3 @@ const int N_OCCLUSION_RAYS = 6; //6;
     }
 
 };
-
-
-
-#endif

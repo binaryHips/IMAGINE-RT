@@ -257,4 +257,6 @@ Vec3 screen_space_to_worldSpace(const GLdouble* modelviewInverse, const GLdouble
     mult(modelviewInverse , resInt[0] , resInt[1] , resInt[2] , resInt[3] , res[0] , res[1] , res[2] , res[3]);
     return Vec3( res[0] / res[3] , res[1] / res[3] , res[2] / res[3] );
 }
+
+
 #endif // matrixUtilities_H
