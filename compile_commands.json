@@ -1,1 +1,107 @@
-[]
+[
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-Wall",
+      "-O3",
+      "-c",
+      "-o",
+      "target/main.o",
+      "src/main.cpp"
+    ],
+    "directory": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT",
+    "file": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/src/main.cpp",
+    "output": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/target/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-Wall",
+      "-O3",
+      "-c",
+      "-o",
+      "target/mesh/Mesh.o",
+      "src/mesh/Mesh.cpp"
+    ],
+    "directory": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT",
+    "file": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/src/mesh/Mesh.cpp",
+    "output": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/target/mesh/Mesh.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-Wall",
+      "-O3",
+      "-c",
+      "-o",
+      "target/render/Camera.o",
+      "src/render/Camera.cpp"
+    ],
+    "directory": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT",
+    "file": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/src/render/Camera.cpp",
+    "output": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/target/render/Camera.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-Wall",
+      "-O3",
+      "-c",
+      "-o",
+      "target/render/Postprocess.o",
+      "src/render/Postprocess.cpp"
+    ],
+    "directory": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT",
+    "file": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/src/render/Postprocess.cpp",
+    "output": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/target/render/Postprocess.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-Wall",
+      "-O3",
+      "-c",
+      "-o",
+      "target/render/Renderer.o",
+      "src/render/Renderer.cpp"
+    ],
+    "directory": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT",
+    "file": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/src/render/Renderer.cpp",
+    "output": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/target/render/Renderer.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-Wall",
+      "-O3",
+      "-c",
+      "-o",
+      "target/utils/imageLoader.o",
+      "src/utils/imageLoader.cpp"
+    ],
+    "directory": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT",
+    "file": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/src/utils/imageLoader.cpp",
+    "output": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/target/utils/imageLoader.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/g++",
+      "-I.",
+      "-Wall",
+      "-O3",
+      "-c",
+      "-o",
+      "target/utils/Trackball.o",
+      "src/utils/Trackball.cpp"
+    ],
+    "directory": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT",
+    "file": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/src/utils/Trackball.cpp",
+    "output": "/home/ohhnyx/Documents/Programmation/cpp/Imagine ray tracing/IMAGINE-RT/target/utils/Trackball.o"
+  }
+]

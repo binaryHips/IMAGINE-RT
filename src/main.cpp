@@ -133,7 +133,7 @@ void clear () {
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
-        3
+        30
     );
 
     renderer.apply(postprocess::blur::Cross_blur::create(16));
