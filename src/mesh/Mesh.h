@@ -4,10 +4,10 @@
 
 #include <vector>
 #include <string>
-#include "Vec3.h"
-#include "Ray.h"
+#include "src/utils/Vec3.h"
+#include "src/utils/Ray.h"
 #include "Triangle.h"
-#include "Material.h"
+#include "src/render/Material.h"
 
 #include <GL/glut.h>
 

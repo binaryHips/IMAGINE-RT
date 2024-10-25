@@ -1,6 +1,6 @@
 #ifndef RAY_H
 #define RAY_H
-#include "Line.h"
+#include "src/utils/Line.h"
 class Ray : public Line {
 public:
     Ray() : Line() {}

@@ -9,8 +9,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "Vec3.h"
-#include "Trackball.h"
+#include "src/utils/Vec3.h"
+#include "src/utils/Trackball.h"
 
 class Camera {
 public:

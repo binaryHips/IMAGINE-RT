@@ -15,12 +15,12 @@
 #include <thread>
 #include <random>
 #include <memory>
-#include "src/Vec3.h"
-#include "src/Camera.h"
-#include "src/Scene.h"
-#include "Color.h"
+#include "src/utils/Vec3.h"
+#include "Camera.h"
+#include "Scene.h"
+#include "src/utils/Color.h"
 
-#include "src/matrixUtilities.h"
+#include "src/utils/matrixUtilities.h"
 
 
 void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*= true*/){

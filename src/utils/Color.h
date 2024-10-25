@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include "src/Vec3.h"
+#include "src/utils/Vec3.h"
 class Color{
 public:
     unsigned char r = 0;

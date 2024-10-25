@@ -1,8 +1,8 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "imageLoader.h"
-#include "Vec3.h"
+#include "src/utils/imageLoader.h"
+#include "src/utils/Vec3.h"
 #include <cmath>
 
 #include <GL/glut.h>

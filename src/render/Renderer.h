@@ -10,10 +10,10 @@
 #include <thread>
 #include <random>
 #include <memory>
-#include "src/Vec3.h"
-#include "src/Camera.h"
-#include "src/Scene.h"
-#include "Color.h"
+#include "src/utils/Vec3.h"
+#include "src/render/Camera.h"
+#include "src/render/Scene.h"
+#include "src/utils/Color.h"
 
 #include "Postprocess.h"
 

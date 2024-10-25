@@ -1,7 +1,7 @@
 #ifndef PLANE_H
 #define PLANE_H
-#include "Vec3.h"
-#include "Line.h"
+#include "src/utils/Vec3.h"
+#include "src/utils/Line.h"
 class Plane {
 private:
     Vec3 m_center , m_normal;

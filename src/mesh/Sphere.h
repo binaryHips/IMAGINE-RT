@@ -1,6 +1,6 @@
 #ifndef Sphere_H
 #define Sphere_H
-#include "Vec3.h"
+#include "src/utils/Vec3.h"
 #include <vector>
 #include "Mesh.h"
 #include <cmath>

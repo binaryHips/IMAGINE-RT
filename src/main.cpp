@@ -29,17 +29,17 @@
 #include <random>
 #include <memory>
 #include <algorithm>
-#include "src/Vec3.h"
-#include "src/Camera.h"
-#include "src/Scene.h"
+#include "src/utils/Vec3.h"
+#include "src/render/Camera.h"
+#include "src/render/Scene.h"
 #include <GL/glut.h>
 
 
-#include "src/Renderer.h"
+#include "src/render/Renderer.h"
 
-#include "src/imageLoader.h"
+#include "src/utils/imageLoader.h"
 
-#include "src/Material.h"
+#include "src/render/Material.h"
 
 using namespace std;
 

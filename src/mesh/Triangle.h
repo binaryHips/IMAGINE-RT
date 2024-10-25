@@ -1,7 +1,7 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
-#include "Vec3.h"
-#include "Ray.h"
+#include "src/utils/Vec3.h"
+#include "src/utils/Ray.h"
 #include "Plane.h"
 
 struct RayTriangleIntersection{

@@ -11,8 +11,8 @@
 #include <chrono>
 #include <thread>
 #include <random>
-#include "src/Vec3.h"
-#include "Color.h"
+#include "src/utils/Vec3.h"
+#include "src/utils/Color.h"
 
 
 class Renderer;

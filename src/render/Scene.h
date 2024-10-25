@@ -2,9 +2,9 @@
 
 #include <vector>
 #include <string>
-#include "Mesh.h"
-#include "Sphere.h"
-#include "Square.h"
+#include "src/mesh/Mesh.h"
+#include "src/mesh/Sphere.h"
+#include "src/mesh/Square.h"
 #include <random>
 
 #include <GL/glut.h>
