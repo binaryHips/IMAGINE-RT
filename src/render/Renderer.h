@@ -81,22 +81,22 @@ public:
 
     void export_to_file(const std::string & filename = "./rendu.ppm");
 
-    /*
-    friend Renderer & operator<<(Renderer& renderer, std::unique_ptr<PostProcessEffect, std::default_delete<PostProcessEffect>> & pp) {
+    
+    friend Renderer & operator<<(Renderer& renderer, PostProcessEffect* pp) {
         renderer.postProcessPipeline.push_back(
-            std::move(pp)
+            pp
         );
         return renderer;
     }
-    */
-
+    
+    /*
     Renderer & apply(PostProcessEffect* pp) {
         postProcessPipeline.push_back(
             pp
         );
         return *this;
     }
-
+    */
 };
 
 

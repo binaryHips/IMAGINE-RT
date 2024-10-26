@@ -70,23 +70,52 @@ inline void PostProcessEffect::writeToBuffer(std::vector< Color > & buffer, int 
 }
 
 
-#define FRAGMENT fragment(int u, int v, Vec3 & OUT,const std::vector< Color > & IMAGE,const std::vector< Color > & RAW_IMAGE,const std::vector< Color > & NORMAL,const std::vector< float > & DEPTH)
+
+
+
+// effects
 
 
 void postprocess::blur::Cross_blur::FRAGMENT{
-    OUT = sampleBuffer(IMAGE, u, v);
+                OUT = sampleBuffer(IMAGE, u, v);
 
-    for (int i = 1; i <= size; ++i){
-        OUT += sampleBuffer(IMAGE, u+i, v);
-        OUT += sampleBuffer(IMAGE, u-i, v);
-        OUT += sampleBuffer(IMAGE, u, v+i);
-        OUT += sampleBuffer(IMAGE, u, v-i);
-    }
-    OUT /= 4 * size + 1 ;
-}
+                for (int i = 1; i <= size; ++i){
+                    OUT += sampleBuffer(IMAGE, u+i, v);
+                    OUT += sampleBuffer(IMAGE, u-i, v);
+                    OUT += sampleBuffer(IMAGE, u, v+i);
+                    OUT += sampleBuffer(IMAGE, u, v-i);
+                }
+                OUT /= 4 * size + 1 ;
+            }
+
+void postprocess::blur::Convolve::FRAGMENT{
+                int size_y = kernel.size()/size_x;
+                
+                for (int v_i = 0; v_i < size_x; ++v_i){
+                    for (int v_j = 0; v_j < size_y; ++v_j){
+
+                        OUT += sampleBuffer(IMAGE, u + (v_i - size_x/2), v + (v_j - size_y/2)) * kernel[v_i + v_j * size_x];
+                    }
+                }
+            }
 
 
-PostProcessEffect* postprocess::blur::Cross_blur::create(int size) {
 
-    return new Cross_blur(size);
-}
+void postprocess::color::Contrast::FRAGMENT{
+                OUT = sampleBuffer(IMAGE, u, v);
+                // first clamp it
+                OUT[0] = std::clamp(OUT[0], 0.0f, 1.0f);
+                OUT[1] = std::clamp(OUT[1], 0.0f, 1.0f);
+                OUT[2] = std::clamp(OUT[2], 0.0f, 1.0f);
+                //contrast
+                OUT[0] = val * (OUT[0]-0.5) + 0.5;
+                OUT[1] = val * (OUT[1]-0.5) + 0.5;
+                OUT[2] = val * (OUT[2]-0.5) + 0.5;
+            }
+
+
+
+void postprocess::color::Value::FRAGMENT{
+                OUT = sampleBuffer(IMAGE, u, v) * val;
+                //contrast
+            }

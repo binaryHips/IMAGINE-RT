@@ -15,9 +15,9 @@ public:
 
     Color(const Vec3 & v){  // maybe saferize it ?
 
-        r = (unsigned char)(v[0] * 255);
-        g = (unsigned char)(v[1] * 255);
-        b = (unsigned char)(v[2] * 255);
+        r = (unsigned char)(std::clamp(v[0] * 255, 0.0f, 255.0f));
+        g = (unsigned char)(std::clamp(v[1] * 255, 0.0f, 255.0f));
+        b = (unsigned char)(std::clamp(v[2] * 255, 0.0f, 255.0f));
     }
 
     Color& operator += (const Color& rhs){

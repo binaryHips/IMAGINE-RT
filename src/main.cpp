@@ -34,8 +34,8 @@
 #include "src/render/Scene.h"
 #include <GL/glut.h>
 
-
 #include "src/render/Renderer.h"
+#include "render/Postprocess.h"
 
 #include "src/utils/imageLoader.h"
 
@@ -136,7 +136,7 @@ void setup_renderer(){
         30
     );
 
-    renderer.apply(postprocess::blur::Cross_blur::create(16));
+    renderer << postprocess::blur::Convolve::create(5, postprocess::kernel::GAUSSIAN_5_5);
 
 }
 

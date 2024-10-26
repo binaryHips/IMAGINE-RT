@@ -35,26 +35,28 @@ void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
-    std::clog <<  std::flush <<"\tDone in " << elapsed_seconds.count() << "s" <<std::endl;
+    std::clog <<"\tDone in " << elapsed_seconds.count() << "s" <<std::endl;
 
     result_image = image;
+
     if (!postProcessPipeline.empty()){
         std::cout << "Applying post-processing" << std::endl;
         start = std::chrono::system_clock::now();
         postProcess();
         end = std::chrono::system_clock::now();
         elapsed_seconds = end-start;
-        std::clog <<  std::flush <<"\tDone in " << elapsed_seconds.count() << "s" <<std::endl;
+        std::clog <<"\n\tDone in " << elapsed_seconds.count() << "s" <<std::endl;
     }
 
     if (export_after) export_to_file();
 }
 
 void Renderer::postProcess(){
-    for (int i =0; i < postProcessPipeline.size(); ++i){
 
-        (*postProcessPipeline.at(0)).apply(*this); // computes the result inside workspace
-        result_image = std::move(workspace);
+    for (int i =0; i < postProcessPipeline.size(); ++i){
+        std::cout << "I  " << i << std::endl;
+        postProcessPipeline[i]->apply(*this); // computes the result inside workspace
+        result_image = workspace;//std::move(workspace);
         workspace = std::vector< Color >(w*h, Color());
     }
 }

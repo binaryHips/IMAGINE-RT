@@ -14,7 +14,7 @@ CIBLE = main
 SRC_DIR := ./src
 OBJ_DIR := ./target
 
-SRCS := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/*/*.cpp) #profondeur 2 max
+SRCS := ./src/render/Postprocess.cpp $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/*/*.cpp) #profondeur 2 max
 LIBS = -lglut -lGLU -lGL -lm -lpthread 
 #########################################################"
 

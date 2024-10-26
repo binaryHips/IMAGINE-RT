@@ -14,7 +14,6 @@
 #include "src/utils/Vec3.h"
 #include "src/utils/Color.h"
 
-
 class Renderer;
 
 class PostProcessEffect{
@@ -48,18 +47,33 @@ public:
         const std::vector< Color > & NORMAL,
         const std::vector< float > & DEPTH
     ) {
-        std::cout << "YOLO" << std::endl;
+        std::cout << "FRAGMENT FUNCTION NOT IMPLEMENTED IN POSTPROCESS" << std::endl;
     }
 
 };
 
+#define FRAGMENT fragment(int u, int v, Vec3 & OUT,const std::vector< Color > & IMAGE,const std::vector< Color > & RAW_IMAGE,const std::vector< Color > & NORMAL,const std::vector< float > & DEPTH)
+// effects
 
-//more practical
-#define FRAGMENT void fragment(int u, int v, Vec3 & OUT,const std::vector< Color > & IMAGE,const std::vector< Color > & RAW_IMAGE,const std::vector< Color > & NORMAL,const std::vector< float > & DEPTH)
+namespace postprocess::kernel{
+    const std::vector<float> GAUSSIAN_5_5(
+        {0.0030,    0.0133,    0.0219,    0.0133,    0.0030,
+        0.0133,    0.0596,    0.0983,    0.0596,    0.0133,
+        0.0219 ,   0.0983,    0.1621,    0.0983,    0.0219,
+        0.0133,    0.0596,    0.0983,    0.0596,    0.0133,
+        0.0030,    0.0133,    0.0219,    0.0133 ,   0.0030}
+    );
 
-namespace postprocess{
+    const std::vector<float> GAUSSIAN_3_3(
+        {1/16.0f, 1/8.0f, 1/16.0f, 
+        1/8.0f, 1/4.0f, 1/8.0f, 
+        1/16.0f, 1/8.0f, 1/16.0f}
+    );
+}
 
-    namespace blur{
+
+
+namespace postprocess::blur{
 
         class Cross_blur: public PostProcessEffect{
         public:
@@ -68,8 +82,59 @@ namespace postprocess{
             Cross_blur(int size): size(size) {}
 
             // needed 
-            static PostProcessEffect* create(int size);
-            FRAGMENT;
+            static PostProcessEffect* create(int size) {
+                return new Cross_blur(size);
+            }
+
+            void FRAGMENT;
         };
-    }
+
+
+        class Convolve: public PostProcessEffect{
+        public:
+            int size_x;
+            const std::vector<float> kernel;
+            Convolve(int size, const std::vector<float> & kernel): size_x(size), kernel(kernel) {}
+
+            // needed 
+            static PostProcessEffect* create(int size_x, std::vector<float> kernel) {
+                return new Convolve(size_x, kernel);
+            }
+
+            void FRAGMENT;
+        };
+
+}
+
+
+namespace postprocess::color{
+
+        class Contrast: public PostProcessEffect{
+        public:
+            float val;
+
+            Contrast(float v): val(v) {}
+
+            // needed 
+            static PostProcessEffect* create(float v) {
+                return new Contrast(v);
+            }
+            
+            void FRAGMENT;
+        };
+
+        class Value: public PostProcessEffect{
+        public:
+            float val;
+
+            Value(float v): val(v) {}
+
+            // needed 
+            static PostProcessEffect* create(float v) {
+                return new Value(v);
+            }
+            
+            void FRAGMENT;
+        };
+
 }
