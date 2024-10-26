@@ -54,7 +54,6 @@ void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*
 void Renderer::postProcess(){
 
     for (int i =0; i < postProcessPipeline.size(); ++i){
-        std::cout << "I  " << i << std::endl;
         postProcessPipeline[i]->apply(*this); // computes the result inside workspace
         result_image = workspace;//std::move(workspace);
         workspace = std::vector< Color >(w*h, Color());

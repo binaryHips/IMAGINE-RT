@@ -88,15 +88,17 @@ void postprocess::blur::Cross_blur::FRAGMENT{
                 OUT /= 4 * size + 1 ;
             }
 
-void postprocess::blur::Convolve::FRAGMENT{
+void postprocess::blur::Convolve::FRAGMENT{ //TODO marche pas
                 int size_y = kernel.size()/size_x;
                 
+                Vec3 s(0.0, 0.0, 0.0);
                 for (int v_i = 0; v_i < size_x; ++v_i){
                     for (int v_j = 0; v_j < size_y; ++v_j){
-
-                        OUT += sampleBuffer(IMAGE, u + (v_i - size_x/2), v + (v_j - size_y/2)) * kernel[v_i + v_j * size_x];
+                        
+                        s += sampleBuffer(IMAGE, u + (v_i - size_x/2), v + (v_j - size_y/2)) * kernel[v_i + v_j * size_x];
                     }
                 }
+                OUT = s;
             }
 
 

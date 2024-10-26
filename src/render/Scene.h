@@ -430,7 +430,7 @@ const int N_OCCLUSION_RAYS = 10;
             lights.resize( lights.size() + 1 );
             Light & light = lights[lights.size() - 1];
             light.pos = Vec3( 0.0, 1.0, 0.0 );
-            light.radius = 2.0f;
+            light.radius = 1.5f;
             light.powerCorrection = 25.0f;
             light.type = LightType_Spherical;
             light.material = Vec3(1,1,1);
