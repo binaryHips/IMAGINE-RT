@@ -135,13 +135,6 @@ void setup_renderer(){
         480, 480,
         70
     );
-    renderer << postprocess::blur::Convolve::create(5,postprocess::kernel::GAUSSIAN_5_5)
-        << postprocess::blur::Convolve::create(5,postprocess::kernel::GAUSSIAN_5_5)
-        << postprocess::blur::Convolve::create(5,postprocess::kernel::GAUSSIAN_5_5)
-        << postprocess::blur::Convolve::create(5,postprocess::kernel::GAUSSIAN_5_5)
-        << postprocess::blur::Convolve::create(5,postprocess::kernel::GAUSSIAN_5_5)
-        << postprocess::blur::Convolve::create(5,postprocess::kernel::GAUSSIAN_5_5)
-        ;
     /*
     renderer << postprocess::color::Contrast::create(0.5)
         << postprocess::blur::Cross_blur::create(10)

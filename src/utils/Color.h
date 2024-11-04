@@ -13,11 +13,15 @@ public:
     Color(unsigned char red, unsigned char green, unsigned char blue): r(red), g(green), b(blue) {}
     Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha): r(red), g(green), b(blue), a(alpha) {}
 
-    Color(const Vec3 & v){  // maybe saferize it ?
+    Color(const Vec3 & v){
 
         r = (unsigned char)(std::clamp(v[0] * 255, 0.0f, 255.0f));
         g = (unsigned char)(std::clamp(v[1] * 255, 0.0f, 255.0f));
         b = (unsigned char)(std::clamp(v[2] * 255, 0.0f, 255.0f));
+    }
+
+    inline Vec3 toVec3() const {
+        return Vec3(float(r)/255.0, float(g)/255.0, float(b)/255.0);
     }
 
     Color& operator += (const Color& rhs){

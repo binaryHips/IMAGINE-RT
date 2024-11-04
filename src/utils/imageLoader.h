@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include "src/utils/Color.h"
 
 // Source courtesy of J. Manson
 // http://josiahmanson.com/prose/optimize_ppm/
@@ -14,17 +15,11 @@ namespace ppmLoader{
 using namespace std;
 void eat_comment(ifstream &f);
 
-struct RGB
-{
-    unsigned char r, g, b;
-};
-
 struct ImageRGB
 {
     int w, h;
-    vector<RGB> data;
+    vector< Color > data;
 };
-
 
 void load_ppm(ImageRGB &img, const string &name);
 

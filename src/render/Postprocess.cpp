@@ -22,7 +22,7 @@ void PostProcessEffect::apply(Renderer & renderer){
     
     for (int v = 0; v < h; ++v){
 
-        std::clog << "\rScanlines remaining: " << (renderer.h-v) << ' ' << std::flush;
+        std::clog << "\r\tScanlines remaining: " << (renderer.h-v) << ' ' << std::flush;
 
         Vec3 out(0, 0, 0);
         for (int u = 0; u < w; ++u){

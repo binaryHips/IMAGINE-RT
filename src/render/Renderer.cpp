@@ -35,7 +35,7 @@ void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
-    std::clog <<"\tDone in " << elapsed_seconds.count() << "s" <<std::endl;
+    std::clog <<"\r\tDone in " << elapsed_seconds.count() << "s              " << std::flush << std::endl; //spaces to overwrite
 
     result_image = image;
 
@@ -45,7 +45,7 @@ void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*
         postProcess();
         end = std::chrono::system_clock::now();
         elapsed_seconds = end-start;
-        std::clog <<"\n\tDone in " << elapsed_seconds.count() << "s" <<std::endl;
+        std::clog <<"\r\tDone in " << elapsed_seconds.count() << "s              " << std::flush << std::endl; //spaces to overwrite
     }
 
     if (export_after) export_to_file();
@@ -115,7 +115,7 @@ void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int p
 
 void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scene){
     const unsigned int area_size = 60;
-    //std::cout << "conc  " << std::thread::hardware_concurrency() << std::endl;
+    std::cout << "Number of cores:  " << std::thread::hardware_concurrency() << std::endl;
 
     getInvModelView(inv_model_view.data());
     getInvProj(inv_proj.data());
@@ -182,20 +182,18 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
     );
     
     // technically not an accurate countdown because threads
-    std::clog << "\rBlocks remaining: " << n_threads << " / " << n_threads << ' ' << std::flush;
+    std::clog << "\r\tBlocks remaining: " << n_threads << " / " << n_threads << ' ' << std::flush;
     for (int t = 0; t < n_threads; ++t){
         threads[t].join();
-        std::clog << "\rBlocks remaining: " << n_threads - t << " / " << n_threads << ' ' << std::flush;
+        std::clog << "\r\tBlocks remaining: " << n_threads - t << " / " << n_threads << ' ' << std::flush;
     }
-    std::cout << std::endl;
-
 }
 
 void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & scene){
 
     Vec3 pos , dir;
     for (int y=0; y<renderer.h; y++){
-        std::clog << "\rScanlines remaining: " << (renderer.h-y) << ' ' << std::flush;
+        std::clog << "\r\tScanlines remaining: " << (renderer.h-y) << ' ' << std::flush;
         for (int x=0; x<renderer.w; x++) {
             for( unsigned int s = 0 ; s < renderer.nsamples ; ++s ) {
                 float u = ((float)(x) + (float)(rand())/(float)(RAND_MAX)) / renderer.w;

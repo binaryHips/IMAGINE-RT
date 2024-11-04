@@ -7,6 +7,7 @@
 #include "src/mesh/Square.h"
 #include <random>
 
+
 #include <GL/glut.h>
 
 
@@ -221,15 +222,35 @@ public:
 
         return false;
     }
+    const int N_OCCLUSION_RAYS = 10;
+
+    void traceOcclusionRays(const Vec3 position, Vec3 & diffuse_contrib) const {
+
+        for (Light l:lights){
+
+            for (int i = 0; i < N_OCCLUSION_RAYS; ++i){
+
+                Vec3 to = l.getRandomTarget() - position;
+                if (!computeOcclusion(
+                    Ray(
+                        position,
+                        to //no need to normalize
+                    )
+                    )){
+                    diffuse_contrib += l.material * l.powerCorrection / Vec3::dot(to, to) / (float)N_OCCLUSION_RAYS; // light is an inverse square law
+
+                }
+            }
+        }
+    }
 
 
-const int N_OCCLUSION_RAYS = 10;
-    Vec3 rayTraceRecursive( Ray const & ray , int NRemainingBounces ) const {
-        
+    Vec3 rayTraceRecursive( Ray const & ray , int NRemainingBounces, bool ignore_depth = false, bool ignore_normal = false ) const {
+        //std::cout<< "HELLO " << std::endl;
         if (NRemainingBounces == 0) return Vec3(0, 0, 0);
 
         Material mat;
-        Vec3 diffuse_contrib;
+        Vec3 diffuse_contrib = Vec3(0, 0, 0);
         Vec3 env_contrib;
 
         RaySceneIntersection raySceneIntersection = computeIntersection(ray);
@@ -242,28 +263,11 @@ const int N_OCCLUSION_RAYS = 10;
                 );
             mat = mesh.material;
 
-
             //Blinn-phong
             if (mat.type == Material_Diffuse_Blinn_Phong){
                 
                 // diffuse
-                for (Light l:lights){
-
-                    for (int i = 0; i < N_OCCLUSION_RAYS; ++i){
-
-                        Vec3 to = l.getRandomTarget() - raySceneIntersection.get_position();
-
-                        if (!computeOcclusion(
-                            Ray(
-                                raySceneIntersection.get_position(),
-                                to //no need to normalize
-                            )
-                            )){
-                            diffuse_contrib = l.material * l.powerCorrection * (1.0 / (Vec3::dot(to, to) * (float)N_OCCLUSION_RAYS)); // light is an inverse squared law
-
-                        }
-                    }
-                }
+                traceOcclusionRays(raySceneIntersection.get_position(), diffuse_contrib);
                 diffuse_contrib[0] *= mat.diffuse_color[0];
                 diffuse_contrib[1] *= mat.diffuse_color[1];
                 diffuse_contrib[2] *= mat.diffuse_color[2];
@@ -312,6 +316,7 @@ const int N_OCCLUSION_RAYS = 10;
 
     Vec3 rayTrace( Ray const & rayStart ) const {
 
+        //struct acc {Vec3 color; Vec3 normal; Vec3 remainder};
         Vec3 color;
         //std::cout << "\n\nNEW RAY   " << std::endl;
         color = rayTraceRecursive(rayStart , 5 );
@@ -436,17 +441,18 @@ const int N_OCCLUSION_RAYS = 10;
             light.material = Vec3(1,1,1);
             light.isInCamSpace = false;
         }
-
+        
         { //Back Wall
             squares.resize( squares.size() + 1 );
             Square & s = squares[squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+            s.setQuad(Vec3(1., -1., 0.), Vec3(-1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
             s.scale(Vec3(2., 2., 1.));
-            s.translate(Vec3(0., 0., -2.));
+            s.translate(Vec3(0., 0., 4.));
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 1.,1.,1. );
-            s.material.specular_color = Vec3( 1.,1.,1. );
+            s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
+            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
             s.material.shininess = 16;
+
         }
 
         { //Left Wall
@@ -518,7 +524,7 @@ const int N_OCCLUSION_RAYS = 10;
         
 
 
-        { //GLASS MIRRORED Sphere
+        { //MIRRORED Sphere
 
             spheres.resize( spheres.size() + 1 );
             Sphere & s = spheres[spheres.size() - 1];

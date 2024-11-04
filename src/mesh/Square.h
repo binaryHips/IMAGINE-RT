@@ -77,7 +77,7 @@ public:
         intersection.intersectionExists = false;
 
         Vec3 m_bottom_left = vertices[0].position;
-        Vec3 m_right_vector = vertices[1].position - vertices[0].position; // TODO diviser ces vecteurs par width et height??
+        Vec3 m_right_vector = vertices[1].position - vertices[0].position; // TODO diviser ces vecteurs par width et height?? (non, mais ça semble quand même bizarre. à voir)
         Vec3 m_up_vector = vertices[3].position - vertices[0].position;
         Vec3 m_normal = Vec3::cross(m_right_vector, m_up_vector) / width / height;
 
