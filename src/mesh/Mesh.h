@@ -8,7 +8,6 @@
 #include "src/utils/Ray.h"
 #include "Triangle.h"
 #include "src/render/Material.h"
-
 #include <GL/glut.h>
 
 #include <cfloat>
@@ -102,7 +101,7 @@ public:
     std::vector< float > uvs_array;
     std::vector< unsigned int > triangles_array;
 
-    Material material;
+    int material_id;
 
     void loadOFF (const std::string & filename);
     void recomputeNormals ();
@@ -168,8 +167,9 @@ public:
     }
 
 
-    void draw() const {
+    void draw(const Material & material) const {
         if( triangles_array.size() == 0 ) return;
+
         GLfloat material_color[4] = {material.diffuse_color[0],
                                      material.diffuse_color[1],
                                      material.diffuse_color[2],
@@ -188,7 +188,6 @@ public:
         glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_color);
         glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambient);
-        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, material.shininess);
 
         glEnableClientState(GL_VERTEX_ARRAY) ;
         glEnableClientState (GL_NORMAL_ARRAY);

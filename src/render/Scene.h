@@ -62,8 +62,7 @@ enum INTERSECTION_TYPE {
     INTERSECTION_SPHERE,
     INTERSECTION_SQUARE,
     INTERSECTION_LIGHT
-
-}; 
+};
 
 class RaySceneIntersection{
     public:
@@ -110,8 +109,18 @@ class Scene {
     std::vector< Square > squares;
     std::vector< Light > lights;
 
+    std::vector< std::shared_ptr< Material > > materials;
+
 public:
 
+    int addMaterial(const std::shared_ptr < Material > m ){
+        materials.push_back(m);
+        return materials.size()-1;
+    }
+
+    const Material & getMaterial(int i) const {
+        return *materials[i];
+    }
 
     Scene() {
     }
@@ -120,20 +129,20 @@ public:
         // iterer sur l'ensemble des objets, et faire leur rendu :
         for( unsigned int It = 0 ; It < meshes.size() ; ++It ) {
             Mesh const & mesh = meshes[It];
-            mesh.draw();
+            mesh.draw(getMaterial(mesh.material_id));
         }
         for( unsigned int It = 0 ; It < spheres.size() ; ++It ) {
             Sphere const & sphere = spheres[It];
-            sphere.draw();
+            sphere.draw(getMaterial(sphere.material_id));
         }
         for( unsigned int It = 0 ; It < squares.size() ; ++It ) {
             Square const & square = squares[It];
-            square.draw();
+            square.draw(getMaterial(square.material_id));
         }
 
         for( unsigned int It = 0 ; It < lights.size() ; ++It ) {
             Light const & light = lights[It];
-            light.draw();
+            light.draw(); //for now the light material isn't reworked.
         }
     }
 
@@ -196,26 +205,34 @@ public:
 
 
 
-    bool computeOcclusion(Ray const & ray) const { // TODO how to compute for transparent objects?
+    bool computeOcclusion(Ray const & ray, const Light & light) const { // TODO how to compute for transparent objects?
         const float min_offset = 1e-6;
 
+        float dist_to_light = (light.pos - ray.origin()).norm();
         float power = 1.0;
         // Spheres 
         for (int i = 0; i<spheres.size(); ++i){
             
-            if (spheres[i].material.type == Material_Glass) continue;
+            if (! getMaterial(spheres[i].material_id).casts_shadows ) continue;
             RaySphereIntersection intersection = spheres[i].intersect(ray);
 
-            if (intersection.intersectionExists && intersection.t >= min_offset){
+            if (intersection.intersectionExists &&
+                intersection.t >= min_offset &&
+                intersection.t < dist_to_light
+                ){
                 return true;
             }
         }
         // Squares 
         for (int i = 0; i<squares.size(); ++i){
 
+            if (! getMaterial(squares[i].material_id).casts_shadows ) continue;
             RaySquareIntersection intersection = squares[i].intersect(ray);
 
-            if (intersection.intersectionExists && intersection.t >= min_offset){
+            if (intersection.intersectionExists &&
+                intersection.t >= min_offset &&
+                intersection.t < dist_to_light
+                ){
                 return true;
             }
         }
@@ -232,12 +249,10 @@ public:
 
                 Vec3 to = l.getRandomTarget() - position;
                 if (!computeOcclusion(
-                    Ray(
-                        position,
-                        to //no need to normalize
-                    )
+                    Ray(position,to /*no need to normalize*/),
+                    l
                     )){
-                    diffuse_contrib += l.material * l.powerCorrection / Vec3::dot(to, to) / (float)N_OCCLUSION_RAYS; // light is an inverse square law
+                    diffuse_contrib += l.material * l.powerCorrection / Vec3::dot(l.pos- position, l.pos- position) / (float)N_OCCLUSION_RAYS; // light is an inverse square law
 
                 }
             }
@@ -249,69 +264,51 @@ public:
         //std::cout<< "HELLO " << std::endl;
         if (NRemainingBounces == 0) return Vec3(0, 0, 0);
 
-        Material mat;
-        Vec3 diffuse_contrib = Vec3(0, 0, 0);
-        Vec3 env_contrib;
-
         RaySceneIntersection raySceneIntersection = computeIntersection(ray);
         
-        if (raySceneIntersection.intersectionExists){
+        if (!raySceneIntersection.intersectionExists){ // if no collision
 
-            Mesh mesh = getObject(
-                raySceneIntersection.typeOfIntersectedObject,
-                raySceneIntersection.objectIndex
-                );
-            mat = mesh.material;
-
-            //Blinn-phong
-            if (mat.type == Material_Diffuse_Blinn_Phong){
-                
-                // diffuse
-                traceOcclusionRays(raySceneIntersection.get_position(), diffuse_contrib);
-                diffuse_contrib[0] *= mat.diffuse_color[0];
-                diffuse_contrib[1] *= mat.diffuse_color[1];
-                diffuse_contrib[2] *= mat.diffuse_color[2];
-
-                env_contrib = rayTraceRecursive(
-                    Ray(
-                        raySceneIntersection.get_position(),
-                        mat.scatter(ray.direction(), raySceneIntersection.get_normal())
-                    ),
-                    NRemainingBounces-1
-                );
-                env_contrib *= mat.specular;
-                diffuse_contrib *= (1.0- mat.specular);
-                //std::cout << "MAT_COLOr  " << mat.diffuse_color <<"  COMPUTED DIFF  " <<  diffuse_contrib << std::endl;
-                return env_contrib + diffuse_contrib;
-
-            }
-
-            //other mats
-            env_contrib = rayTraceRecursive(
-                Ray(
-                    raySceneIntersection.get_position(),
-                    mat.scatter(ray.direction(), raySceneIntersection.get_normal())
-                ),
-                NRemainingBounces-1
-            );
+            return Vec3(0, 0, 0);
             /*
-            std::cout << "\t INTERSECTION \n\t\tpos=(" << raySceneIntersection.get_position() << ")\n\t\tnormal = ("<<raySceneIntersection.get_normal()<< ")" << std::endl;
-            std::cout << "\t\t incident ray: " << ray.direction() << std::endl;
-            std::cout << "\t\t reflected ray: " << res << std::endl;
-            std::cout << "\n\t\t env_contrib: " << env_contrib << std::endl;
-            std::cout << "\n\t\t mat_color: " << mat.diffuse_color << std::endl;
+            Vec3 unit_direction = ray.direction();
+            float a = 0.5*(unit_direction[1] + 1.0);
+            return (1.0-a)*Vec3(1.0, 1.0, 1.0) + a*Vec3(0.5, 0.7, 1.0);
             */
-
-            //std::cout << "  ENV   " << env_contrib << "  DIFF  " <<  diffuse_contrib << std::endl;
-            return env_contrib;
         }
 
-        // simple sky
-        return Vec3(0, 0, 0);
+        //if collision
 
-        Vec3 unit_direction = ray.direction();
-        float a = 0.5*(unit_direction[1] + 1.0);
-        return (1.0-a)*Vec3(1.0, 1.0, 1.0) + a*Vec3(0.5, 0.7, 1.0);
+        Vec3 diffuse_contrib = Vec3(0, 0, 0);
+        Vec3 env_contrib = Vec3(0, 0, 0);
+
+        Mesh mesh = getObject(
+            raySceneIntersection.typeOfIntersectedObject,
+            raySceneIntersection.objectIndex
+            );
+
+        const Material& mat = getMaterial(mesh.material_id);
+
+        if (mat.casts_shadows ){
+            traceOcclusionRays(raySceneIntersection.get_position(), diffuse_contrib);
+        }
+
+        env_contrib = rayTraceRecursive(
+            Ray(
+                raySceneIntersection.get_position(),
+                mat.scatter(ray.direction(), raySceneIntersection.get_normal())
+            ),
+            NRemainingBounces-1
+        );
+
+        return mat.computeColor(diffuse_contrib, env_contrib);
+
+        /*
+        std::cout << "\t INTERSECTION \n\t\tpos=(" << raySceneIntersection.get_position() << ")\n\t\tnormal = ("<<raySceneIntersection.get_normal()<< ")" << std::endl;
+        std::cout << "\t\t incident ray: " << ray.direction() << std::endl;
+        std::cout << "\t\t reflected ray: " << res << std::endl;
+        std::cout << "\n\t\t env_contrib: " << env_contrib << std::endl;
+        std::cout << "\n\t\t mat_color: " << mat.diffuse_color << std::endl;
+        */
     }
 
     Vec3 rayTrace( Ray const & rayStart ) const {
@@ -330,17 +327,26 @@ public:
         squares.clear();
         lights.clear();
 
+        //materials
+        int sphereMat = addMaterial(
+            PhongMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,1.,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.5
+            )
+        );
+
+        int planeMat = addMaterial(
+            PhongMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 0.8,0.8,0.8 ), Vec3( 0.2,0.2,0.2 ), 0.0
+            )
+        );
+
         {
             spheres.resize( spheres.size() + 1 );
             Sphere & s = spheres[spheres.size() - 1];
             s.m_center = Vec3(0. , 0. , 0.);
             s.m_radius = 1.f;
             s.build_arrays();
-            s.material.type = Material_Glass;
-            s.material.diffuse_color = Vec3( 0.3,1.,0.3 );
-            s.material.specular_color = Vec3( 0.2,0.2,0.2 );
-            s.material.index_medium = 1.02;
-            s.material.shininess = 20;
+            s.material_id = sphereMat;
         }
 
         // added 
@@ -353,34 +359,7 @@ public:
             s.scale(Vec3(4., 4., 1.));
             s.rotate_x(-90);
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
-            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
-            s.material.shininess = 16;
-        }
-
-        {
-            squares.resize( squares.size() + 1 );
-            Square & s = squares[squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.rotate_y(30);
-            s.translate(Vec3(-1.2, 0., -1.8));
-            s.scale(Vec3(1., 1., 1.));
-            s.build_arrays();
-            s.material.diffuse_color = Vec3( 1.0,0.4,0.6 );
-            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
-            s.material.shininess = 16;
-        }
-        {
-            squares.resize( squares.size() + 1 );
-            Square & s = squares[squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.rotate_y(-30);
-            s.translate(Vec3(1.2, 0., -1.8));
-            s.scale(Vec3(1., 1., 1.));
-            s.build_arrays();
-            s.material.diffuse_color = Vec3( 0.4,0.6,0.8 );
-            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
-            s.material.shininess = 16;
+            s.material_id = planeMat;
         }
         // added 
 
@@ -389,7 +368,7 @@ public:
             Light & light = lights[lights.size() - 1];
             light.pos = Vec3(0,3,0);
             light.radius = 1.0f;
-            light.powerCorrection = 30.0f;
+            light.powerCorrection = 20.0f;
             light.type = LightType_Spherical;
             light.material = Vec3(1,1,1);
             light.isInCamSpace = false;
@@ -398,6 +377,16 @@ public:
     }
 
     void setup_single_square() {
+        
+        //materials
+
+
+        int planeMat = addMaterial(
+            PhongMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 0.8,0.8,0.8 ), Vec3( 0.2,0.2,0.2 ), 0.0
+            )
+        );
+
         meshes.clear();
         spheres.clear();
         squares.clear();
@@ -419,24 +408,61 @@ public:
             Square & s = squares[squares.size() - 1];
             s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 0.8,0.8,0.8 );
-            s.material.specular_color = Vec3( 0.8,0.8,0.8 );
-            s.material.shininess = 20;
+            s.material_id = planeMat;
         }
+        
     }
 
     void setup_cornell_box(){
+        
         meshes.clear();
         spheres.clear();
         squares.clear();
         lights.clear();
 
+        //materials
+        int glassSphereMat = addMaterial(
+            GlassMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.05
+            )
+        );
+
+        int mirrorSphereMat = addMaterial(
+            MirrorMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.3,0.9 ), Vec3( 0.2,0.2,0.2 )
+            )
+        );
+
+        int planeMatRed = addMaterial(
+            PhongMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.2
+            )
+        );
+
+        int planeMatWhite = addMaterial(
+            PhongMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,1.0,1.0 ), Vec3( 0.2,0.2,0.2 ), 0.5
+            )
+        );
+
+        int planeMatGreen = addMaterial(
+            PhongMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,1.0,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.2
+            )
+        );
+
+        int planeMatPurple = addMaterial(
+            PhongMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.8 ), Vec3( 0.2,0.2,0.2 ), 0.1
+            )
+        );
+
         {
             lights.resize( lights.size() + 1 );
             Light & light = lights[lights.size() - 1];
             light.pos = Vec3( 0.0, 1.0, 0.0 );
-            light.radius = 1.5f;
-            light.powerCorrection = 25.0f;
+            light.radius = 0.5f;
+            light.powerCorrection = 5.f;
             light.type = LightType_Spherical;
             light.material = Vec3(1,1,1);
             light.isInCamSpace = false;
@@ -445,14 +471,11 @@ public:
         { //Back Wall
             squares.resize( squares.size() + 1 );
             Square & s = squares[squares.size() - 1];
-            s.setQuad(Vec3(1., -1., 0.), Vec3(-1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
             s.scale(Vec3(2., 2., 1.));
-            s.translate(Vec3(0., 0., 4.));
+            s.translate(Vec3(0., 0., -2.));
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
-            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
-            s.material.shininess = 16;
-
+            s.material_id = planeMatWhite;
         }
 
         { //Left Wall
@@ -464,9 +487,7 @@ public:
             s.translate(Vec3(0., 0., -2.));
             s.rotate_y(90);
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 1.,0.,0. );
-            s.material.specular_color = Vec3( 1.,0.,0. );
-            s.material.shininess = 16;
+            s.material_id = planeMatRed;
         }
 
         { //Right Wall
@@ -477,9 +498,7 @@ public:
             s.scale(Vec3(2., 2., 1.));
             s.rotate_y(-90);
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 0.0,1.0,0.0 );
-            s.material.specular_color = Vec3( 0.0,1.0,0.0 );
-            s.material.shininess = 16;
+            s.material_id = planeMatGreen;
         }
 
         { //Floor
@@ -490,11 +509,9 @@ public:
             s.scale(Vec3(2., 2., 1.));
             s.rotate_x(-90);
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
-            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
-            s.material.shininess = 16;
+            s.material_id = planeMatWhite;
         }
-        
+
         { //Ceiling
             squares.resize( squares.size() + 1 );
             Square & s = squares[squares.size() - 1];
@@ -503,11 +520,8 @@ public:
             s.scale(Vec3(2., 2., 1.));
             s.rotate_x(90);
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
-            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
-            s.material.shininess = 16;
+            s.material_id = planeMatPurple;
         }
-        
         
         { //Front Wall
             squares.resize( squares.size() + 1 );
@@ -515,44 +529,34 @@ public:
             s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
             s.translate(Vec3(0., 0., -2.));
             s.scale(Vec3(2., 2., 1.));
-            //s.rotate_y(-180);
+            s.rotate_y(180);
             s.build_arrays();
-            s.material.diffuse_color = Vec3( 1.0,1.0,1.0 );
-            s.material.specular_color = Vec3( 1.0,1.0,1.0 );
-            s.material.shininess = 16;
+            s.material_id = planeMatWhite;
         }
         
 
 
-        { //MIRRORED Sphere
+        { //GLASS Sphere
 
             spheres.resize( spheres.size() + 1 );
             Sphere & s = spheres[spheres.size() - 1];
             s.m_center = Vec3(1.0, -1.25, 0.5);
             s.m_radius = 0.75f;
             s.build_arrays();
-            s.material.type = Material_Mirror;
-            s.material.diffuse_color = Vec3( 1.,0.,0. );
-            s.material.specular_color = Vec3( 1.,0.,0. );
-            s.material.shininess = 16;
-            s.material.transparency = 1.0;
+            s.material_id = glassSphereMat;
         }
 
 
-        { //GLASS Sphere
+        { //MIRRORED Sphere
             spheres.resize( spheres.size() + 1 );
             Sphere & s = spheres[spheres.size() - 1];
             s.m_center = Vec3(-1.0, -1.25, -0.5);
             s.m_radius = 0.75f;
             s.build_arrays();
-            s.material.type = Material_Glass;
-            s.material.diffuse_color = Vec3( 1.,1.,1. );
-            s.material.specular_color = Vec3(  1.,1.,1. );
-            s.material.shininess = 16;
-            s.material.transparency = 0.;
-            s.material.index_medium = 1.1;
+            s.material_id = mirrorSphereMat;
         }
-
+    
     }
+    
 
 };
