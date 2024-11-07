@@ -9,13 +9,16 @@
 #include "Triangle.h"
 #include "src/render/Material.h"
 #include <GL/glut.h>
-
+#include <algorithm>
 #include <cfloat>
 
 
 // -------------------------------------------
 // Basic Mesh class
 // -------------------------------------------
+
+
+
 
 struct MeshVertex {
     inline MeshVertex () {}
@@ -63,7 +66,21 @@ class Mesh {
 protected:
     void build_positions_array() {
         positions_array.resize( 3 * vertices.size() );
+
+        //update AABB aswell.
+        AABB_v1 = vertices[0].position;
+        AABB_v2 = vertices[0].position;
+
         for( unsigned int v = 0 ; v < vertices.size() ; ++v ) {
+
+            AABB_v1[0] = std::min(AABB_v1[0], vertices[v].position[0]);
+            AABB_v1[1] = std::min(AABB_v1[1], vertices[v].position[1]);
+            AABB_v1[2] = std::min(AABB_v1[2], vertices[v].position[2]);
+
+            AABB_v2[0] = std::max(AABB_v1[0], vertices[v].position[0]);
+            AABB_v2[1] = std::max(AABB_v1[1], vertices[v].position[1]);
+            AABB_v2[2] = std::max(AABB_v1[2], vertices[v].position[2]);
+
             positions_array[3*v + 0] = vertices[v].position[0];
             positions_array[3*v + 1] = vertices[v].position[1];
             positions_array[3*v + 2] = vertices[v].position[2];
@@ -86,21 +103,62 @@ protected:
     }
     void build_triangles_array() {
         triangles_array.resize( 3 * triangles.size() );
+
+        triangle_primitives.resize(triangles.size()); // for RT
+
         for( unsigned int t = 0 ; t < triangles.size() ; ++t ) {
             triangles_array[3*t + 0] = triangles[t].v[0];
             triangles_array[3*t + 1] = triangles[t].v[1];
             triangles_array[3*t + 2] = triangles[t].v[2];
+
+            triangle_primitives[t] = Triangle(vertices[ triangles[t].v[0] ].position,vertices[ triangles[t].v[1] ].position,vertices[ triangles[t].v[2] ].position);
         }
+
+        // for RT
+
+        triangle_primitives.resize(triangles.size());
+
     }
+
+    // https://tavianator.com/2011/ray_box.html
+    bool intersection(const Ray & r) const {
+
+
+        float tx1 = (AABB_v1[0] - r.origin()[0]) / r.direction()[0];
+        float tx2 = (AABB_v2[0] - r.origin()[0]) / r.direction()[0];
+
+        float tmin = std::min(tx1, tx2);
+        float tmax = std::max(tx1, tx2);
+
+        float ty1 = (AABB_v1[1]- r.origin()[1]) / r.direction()[1];
+        float ty2 = (AABB_v2[1]- r.origin()[1]) / r.direction()[1];
+
+        tmin = std::max(tmin, std::min(ty1, ty2));
+        tmax = std::min(tmax, std::max(ty1, ty2));
+
+        float tz1 = (AABB_v1[2]- r.origin()[2]) / r.direction()[2];
+        float tz2 = (AABB_v2[2]- r.origin()[2]) / r.direction()[2];
+
+        tmin = std::max(tmin, std::min(tz1, tz2));
+        tmax = std::min(tmax, std::max(tz1, tz2));
+
+        return tmax >= tmin;
+    }
+
+
+
 public:
     std::vector<MeshVertex> vertices;
     std::vector<MeshTriangle> triangles;
+
+    std::vector<Triangle> triangle_primitives;
 
     std::vector< float > positions_array;
     std::vector< float > normalsArray;
     std::vector< float > uvs_array;
     std::vector< unsigned int > triangles_array;
 
+    Vec3 AABB_v1, AABB_v2;
     int material_id;
 
     void loadOFF (const std::string & filename);
@@ -195,20 +253,48 @@ public:
         glVertexPointer (3, GL_FLOAT, 3*sizeof (float) , (GLvoid*)(positions_array.data()));
         glDrawElements(GL_TRIANGLES, triangles_array.size(), GL_UNSIGNED_INT, (GLvoid*)(triangles_array.data()));
 
+
+        // simple debug draw for AABB (does it work?)
+
+        glPointSize(5);   
+        glColor3f(0.5f, 1.0f, 5.0f);
+        glBegin(GL_POINTS);
+
+        for (int i = 0; i < 30; ++i){
+            glVertex3f(
+                AABB_v1[0] + AABB_v2[0] * i / 30.0,
+                AABB_v1[1] + AABB_v2[1] * i / 30.0,
+                AABB_v1[2] + AABB_v2[2] * i / 30.0
+            );
+        }
+        glEnd();
+
     }
 
     RayTriangleIntersection intersect( Ray const & ray ) const {
         RayTriangleIntersection closestIntersection;
+        closestIntersection.intersectionExists = false;
         closestIntersection.t = FLT_MAX;
+
+        if (!intersection(ray)) return closestIntersection;
+
+        // si dans AABB
+
+        
+        for (Triangle triangle: triangle_primitives){
+
+            RayTriangleIntersection res = triangle.getIntersection(ray);
+
+            if (res.intersectionExists && res.t < closestIntersection.t) closestIntersection = res;
+        }
         // Note :
         // Creer un objet Triangle pour chaque face
         // Vous constaterez des problemes de précision
         // solution : ajouter un facteur d'échelle lors de la création du Triangle : float triangleScaling = 1.000001;
+
+        
         return closestIntersection;
     }
 };
-
-
-
 
 #endif

@@ -18,7 +18,6 @@ class Renderer;
 
 class PostProcessEffect{
 
-
 public:
     int repeat_mode = 0; // 0 is mirror repeat?
     int w = 0;
@@ -28,6 +27,7 @@ public:
 
 
     inline Vec3 sampleBuffer(const std::vector< Color > & buffer, int x, int y) const;
+    inline float sampleBuffer(const std::vector< float > & buffer, int x, int y) const;
 
     // not private juste in case but don't go around writing in the wrong buffers!
     inline void writeToBuffer(std::vector< Color > & buffer, int x, int y, Color elt) const;
@@ -136,5 +136,38 @@ namespace postprocess::color{
             
             void FRAGMENT;
         };
+
+}
+
+namespace postprocess::utils{
+
+    class Depth: public PostProcessEffect{
+
+        float maxDepth = -1;
+
+        public:
+            Depth() = default;
+
+
+            static PostProcessEffect* create() {
+                return new Depth();
+            }
+            
+            void FRAGMENT;
+        };
+
+    
+    class Normals: public PostProcessEffect{
+        public:
+            Normals() = default;
+
+
+            static PostProcessEffect* create() {
+                return new Normals();
+            }
+            
+            void FRAGMENT;
+        };
+
 
 }

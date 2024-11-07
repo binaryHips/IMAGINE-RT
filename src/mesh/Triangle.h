@@ -7,7 +7,7 @@
 struct RayTriangleIntersection{
     bool intersectionExists;
     float t;
-    float w0,w1,w2;
+    float u, v;
     unsigned int tIndex;
     Vec3 intersection;
     Vec3 normal;
@@ -61,17 +61,42 @@ public:
         //TODO Complete
     }
 
-    RayTriangleIntersection getIntersection( Ray const & ray ) const {
+    RayTriangleIntersection getIntersection( Ray const & ray ) const { // implementé à partir de https://fr.wikipedia.org/wiki/Algorithme_d%27intersection_de_M%C3%B6ller-Trumbore
         RayTriangleIntersection result;
-        // 1) check that the ray is not parallel to the triangle:
 
-        // 2) check that the triangle is "in front of" the ray:
+        Vec3 edge1, edge2, h, s, q;
+        float a,f,u,v;
+        edge1 = m_c[1] -  m_c[0];
+        edge2 =  m_c[2] -  m_c[0];
 
-        // 3) check that the intersection point is inside the triangle:
-        // CONVENTION: compute u,v such that p = w0*c0 + w1*c1 + w2*c2, check that 0 <= w0,w1,w2 <= 1
+        h = Vec3::cross(ray.direction(), edge2);
+        a = Vec3::dot(edge1, h);
 
-        // 4) Finally, if all conditions were met, then there is an intersection! :
+        if (a > -0.0000001 && a < 0.0000001) return result;    // Le rayon est parallèle au triangle.
 
+        f = 1.0/a;
+        s = ray.origin() - m_c[0];
+        u = f * (Vec3::dot(s, h));
+
+        if (u < 0.0 || u > 1.0) return result;
+
+        q = Vec3::cross(s, edge1);
+        v = f * Vec3::dot(ray.direction(), q);
+        
+        if (v < 0.0 || u + v > 1.0) return result;
+
+        float t = f * Vec3::dot(edge2, q);
+        if (t > 0)
+        {
+
+            result.intersectionExists = true;
+            result.u = 0.0;
+            result.v = 0.0;
+            result.t = t;
+            result.intersection = ray.at(t);
+            result.normal = m_normal;
+            return result;
+        }
         return result;
     }
 };

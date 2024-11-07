@@ -49,7 +49,6 @@ void Camera::resize (int _W, int _H) {
   glMatrixMode (GL_MODELVIEW);
 }
 
-
 void Camera::initPos () {
   if (!ini) {
   _spinning = spinning;

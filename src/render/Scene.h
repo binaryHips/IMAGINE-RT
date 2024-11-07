@@ -23,6 +23,14 @@ enum LightType {
 };
 
 
+struct RayResult {
+    Vec3 color = Vec3(0, 0, 0);
+    Vec3 normal = Vec3(0, 0, 0);
+    float depth = 0;
+
+    RayResult() = default;
+};
+
 struct Light {
     Vec3 material;
     bool isInCamSpace;
@@ -146,7 +154,7 @@ public:
         }
     }
 
-    Mesh getObject(int type, int idx) const {
+    const Mesh & getObject(int type, int idx) const {
 
         switch (type){
             case 0:
@@ -176,6 +184,7 @@ public:
                 result.intersectionExists = true;
 
                 min_dist = intersection.t;
+                result.t = intersection.t;
                 result.raySphereIntersection = intersection;
                 result.typeOfIntersectedObject = INTERSECTION_SPHERE;
                 result.objectIndex = i;
@@ -192,9 +201,32 @@ public:
                 if (Vec3::dot(intersection.normal, ray.direction()) > 0) return result;
 
                 result.intersectionExists = true;
+
+                result.t = intersection.t;
                 min_dist = intersection.t;
                 result.raySquareIntersection = intersection;
                 result.typeOfIntersectedObject = INTERSECTION_SQUARE;
+                result.objectIndex = i;
+                
+            }
+        }
+        
+        // Meshes 
+        for (int i = 0; i<meshes.size(); ++i){
+
+            RayTriangleIntersection intersection = meshes[i].intersect(ray);
+
+            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= min_offset){
+
+                // condition for backface culling
+                //if (Vec3::dot(intersection.normal, ray.direction()) > 0) return result;
+
+                result.intersectionExists = true;
+
+                result.t = intersection.t;
+                min_dist = intersection.t;
+                result.rayMeshIntersection = intersection;
+                result.typeOfIntersectedObject = INTERSECTION_MESH;
                 result.objectIndex = i;
                 
             }
@@ -259,23 +291,21 @@ public:
         }
     }
 
-
-    Vec3 rayTraceRecursive( Ray const & ray , int NRemainingBounces, bool ignore_depth = false, bool ignore_normal = false ) const {
+    void rayTraceRecursive( Ray const & ray , RayResult & res, int NRemainingBounces, bool update_depth = true, bool update_normal = true ) const {
         //std::cout<< "HELLO " << std::endl;
-        if (NRemainingBounces == 0) return Vec3(0, 0, 0);
+        if (NRemainingBounces == 0) return;
 
         RaySceneIntersection raySceneIntersection = computeIntersection(ray);
         
         if (!raySceneIntersection.intersectionExists){ // if no collision
 
-            return Vec3(0, 0, 0);
-            /*
-            Vec3 unit_direction = ray.direction();
-            float a = 0.5*(unit_direction[1] + 1.0);
-            return (1.0-a)*Vec3(1.0, 1.0, 1.0) + a*Vec3(0.5, 0.7, 1.0);
-            */
-        }
+            float a = 0.5*(ray.direction()[1] + 1.0);
 
+            res.color = (1.0-a)*Vec3(1.0, 1.0, 1.0) + a*Vec3(0.5, 0.7, 1.0);
+            if (update_depth) res.depth = -1;
+            return ;
+            
+        }
         //if collision
 
         Vec3 diffuse_contrib = Vec3(0, 0, 0);
@@ -288,19 +318,29 @@ public:
 
         const Material& mat = getMaterial(mesh.material_id);
 
-        if (mat.casts_shadows ){
+        if (mat.casts_shadows){
             traceOcclusionRays(raySceneIntersection.get_position(), diffuse_contrib);
         }
+        if (update_depth) res.depth += raySceneIntersection.t;
+        if (update_normal) res.normal = raySceneIntersection.get_normal();
 
-        env_contrib = rayTraceRecursive(
+        update_depth = update_depth && !mat.casts_shadows; // go through transparent materials?
+        update_normal = update_normal && !mat.casts_shadows; // go through transparent materials?
+
+
+        rayTraceRecursive(
             Ray(
                 raySceneIntersection.get_position(),
                 mat.scatter(ray.direction(), raySceneIntersection.get_normal())
             ),
-            NRemainingBounces-1
+            res,
+            NRemainingBounces-1,
+            update_depth,
+            update_normal
         );
+        res.color = mat.computeColor(diffuse_contrib, env_contrib);
 
-        return mat.computeColor(diffuse_contrib, env_contrib);
+
 
         /*
         std::cout << "\t INTERSECTION \n\t\tpos=(" << raySceneIntersection.get_position() << ")\n\t\tnormal = ("<<raySceneIntersection.get_normal()<< ")" << std::endl;
@@ -311,14 +351,13 @@ public:
         */
     }
 
-    Vec3 rayTrace( Ray const & rayStart ) const {
+    RayResult rayTrace( Ray const & rayStart ) const {
 
-        //struct acc {Vec3 color; Vec3 normal; Vec3 remainder};
-        Vec3 color;
-        //std::cout << "\n\nNEW RAY   " << std::endl;
-        color = rayTraceRecursive(rayStart , 5 );
-        //std::cout << color << std::endl;
-        return color;
+        RayResult v; // struct defined in renderer.h
+
+        rayTraceRecursive(rayStart, v, 5, true, true );
+
+        return v;
     }
 
     void setup_single_sphere() {
@@ -397,12 +436,12 @@ public:
             Light & light = lights[lights.size() - 1];
             light.pos = Vec3(-3,3,3);
             light.radius = 2.5f;
-            light.powerCorrection = 2.f;
+            light.powerCorrection = 8.f;
             light.type = LightType_Spherical;
             light.material = Vec3(1,1,1);
             light.isInCamSpace = false;
         }
-
+        /*
         {
             squares.resize( squares.size() + 1 );
             Square & s = squares[squares.size() - 1];
@@ -410,7 +449,15 @@ public:
             s.build_arrays();
             s.material_id = planeMat;
         }
-        
+        */
+
+        //added
+        Mesh mesh;
+        mesh.loadOFF("/home/e20210002460/Master/Prog 3D/ray_tracing/HAI719I_Raytracer/models/tripod.off");
+        mesh.build_arrays();
+        //std::cout << mesh.triangles.size() << std::endl;
+        mesh.material_id = planeMat;
+        meshes.push_back(mesh); // copy but don't care
     }
 
     void setup_cornell_box(){

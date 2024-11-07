@@ -11,9 +11,12 @@ void Mesh::loadOFF (const std::string & filename) {
     in >> offString >> sizeV >> sizeT >> tmp;
     vertices.resize (sizeV);
     triangles.resize (sizeT);
+
     for (unsigned int i = 0; i < sizeV; i++)
         in >> vertices[i].position;
+    
     int s;
+
     for (unsigned int i = 0; i < sizeT; i++) {
         in >> s;
         for (unsigned int j = 0; j < 3; j++)

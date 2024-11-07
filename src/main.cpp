@@ -133,10 +133,10 @@ void clear () {
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
-        100
+        20
     );
-    
-    //renderer << postprocess::blur::Convolve::create(3, postprocess::kernel::GAUSSIAN_3_3);
+    //renderer << postprocess::utils::Normals::create();
+    //renderer << postprocess::utils::Depth::create();
     
 
 }

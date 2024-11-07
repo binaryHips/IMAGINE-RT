@@ -86,15 +86,18 @@ std::array< GLdouble, 2 >  near_far_planes;
 
 void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY){
 
+    
     static thread_local std::mt19937 rng(std::random_device{}());
+
+
 
     Vec3 pos = cameraSpaceToWorldSpace(inv_model_view.data(), Vec3(0,0,0) );
     Vec3 dir;
     int p;
-    Vec3 acc;
+    RayResult acc;
     for (int y=pos_y; y<pos_y+sizeY; y++){
         for (int x = pos_x; x<pos_x+sizeX; x++) {
-            acc = Vec3(0, 0, 0);
+            acc = RayResult();
             p = idx_from_coord(x,y , renderer.w);
 
             for( unsigned int s = 0 ; s < renderer.nsamples ; ++s ) {
@@ -105,10 +108,16 @@ void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int p
                 dir = screen_space_to_worldSpace(inv_model_view.data(), inv_proj.data(), near_far_planes.data(), u,v) - pos;
                 
                 dir.normalize();
-                Vec3 color = scene.rayTrace( Ray(pos , dir) );
-                acc += color;
+                RayResult res = scene.rayTrace( Ray(pos , dir) );
+                acc.color += res.color;
+                acc.normal += res.normal;
+                acc.depth += res.depth;
             }
-            renderer.image[p] = Color(acc / renderer.nsamples);
+
+            
+            renderer.image[p] = Color(acc.color / renderer.nsamples);
+            renderer.screen_space_normals[p] = Color(acc.normal / renderer.nsamples);
+            renderer.screen_space_depth[p] = acc.depth / renderer.nsamples;
         }
     }
 }
@@ -189,6 +198,7 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
     }
 }
 
+//DOESNT FILL SCREEN NORMALS AND DEPTH FOR NOW
 void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & scene){
 
     Vec3 pos , dir;
@@ -200,7 +210,7 @@ void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & sce
                 float v = ((float)(y) + (float)(rand())/(float)(RAND_MAX)) / renderer.h;
                 // this is a random uv that belongs to the pixel xy.
                 screen_space_to_world_space_ray(u,v,pos,dir);
-                Vec3 color = scene.rayTrace( Ray(pos , dir) );
+                Vec3 color = scene.rayTrace( Ray(pos , dir) ).color;
                 renderer.image.at(x + y*renderer.w) += Color(color);
             }
             renderer.image.at(x + y*renderer.w)  /= renderer.nsamples;
