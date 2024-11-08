@@ -77,9 +77,9 @@ protected:
             AABB_v1[1] = std::min(AABB_v1[1], vertices[v].position[1]);
             AABB_v1[2] = std::min(AABB_v1[2], vertices[v].position[2]);
 
-            AABB_v2[0] = std::max(AABB_v1[0], vertices[v].position[0]);
-            AABB_v2[1] = std::max(AABB_v1[1], vertices[v].position[1]);
-            AABB_v2[2] = std::max(AABB_v1[2], vertices[v].position[2]);
+            AABB_v2[0] = std::max(AABB_v2[0], vertices[v].position[0]);
+            AABB_v2[1] = std::max(AABB_v2[1], vertices[v].position[1]);
+            AABB_v2[2] = std::max(AABB_v2[2], vertices[v].position[2]);
 
             positions_array[3*v + 0] = vertices[v].position[0];
             positions_array[3*v + 1] = vertices[v].position[1];
@@ -260,6 +260,7 @@ public:
         glColor3f(0.5f, 1.0f, 5.0f);
         glBegin(GL_POINTS);
 
+        /*
         for (int i = 0; i < 30; ++i){
             glVertex3f(
                 AABB_v1[0] + AABB_v2[0] * i / 30.0,
@@ -267,6 +268,19 @@ public:
                 AABB_v1[2] + AABB_v2[2] * i / 30.0
             );
         }
+        */
+        glVertex3f(
+            AABB_v1[0],
+            AABB_v1[1],
+            AABB_v1[2]
+        );
+
+        glVertex3f(
+            AABB_v2[0],
+            AABB_v2[1],
+            AABB_v2[2]
+        );
+
         glEnd();
 
     }
@@ -276,7 +290,7 @@ public:
         closestIntersection.intersectionExists = false;
         closestIntersection.t = FLT_MAX;
 
-        if (!intersection(ray)) return closestIntersection;
+        //if (!intersection(ray)) return closestIntersection;
 
         // si dans AABB
 

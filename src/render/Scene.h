@@ -11,16 +11,7 @@
 #include <GL/glut.h>
 
 
-static float randomUnitFloat()
-{   // in (-1, 1)
-    static thread_local std::mt19937 rng(std::random_device{}());
-    return (float)(rng()) * (2.0 / (float)(rng.max())) - 1.0;
-}
 
-enum LightType {
-    LightType_Spherical,
-    LightType_Quad
-};
 
 
 struct RayResult {
@@ -31,39 +22,8 @@ struct RayResult {
     RayResult() = default;
 };
 
-struct Light {
-    Vec3 material;
-    bool isInCamSpace;
-    LightType type;
+// struct light defined in Material
 
-    Vec3 pos;
-    float radius;
-
-    Mesh quad;
-
-    float powerCorrection;
-
-    Light() : powerCorrection(1.0) {}
-
-    Vec3 getRandomTarget() const {
-        // simple cube light
-        return pos + Vec3(randomUnitFloat(), randomUnitFloat(), randomUnitFloat()) * radius;
-    }
-
-    void draw() const { // simple debug draw for volume of light
-
-        glPointSize(5);   
-        glColor3f(0.1f, 0.1f, 1.0f);
-        glBegin(GL_POINTS);
-
-        for (int i = 0; i < 50; ++i){
-            glVertex3fv(
-                &(getRandomTarget()[0])
-            );
-        }
-        glEnd();
-    }
-};
 
 enum INTERSECTION_TYPE {
     INTERSECTION_MESH,
@@ -299,6 +259,7 @@ public:
         
         if (!raySceneIntersection.intersectionExists){ // if no collision
 
+            // sky
             float a = 0.5*(ray.direction()[1] + 1.0);
 
             res.color = (1.0-a)*Vec3(1.0, 1.0, 1.0) + a*Vec3(0.5, 0.7, 1.0);
@@ -306,6 +267,7 @@ public:
             return ;
             
         }
+
         //if collision
 
         Vec3 diffuse_contrib = Vec3(0, 0, 0);
@@ -327,18 +289,19 @@ public:
         update_depth = update_depth && !mat.casts_shadows; // go through transparent materials?
         update_normal = update_normal && !mat.casts_shadows; // go through transparent materials?
 
-
-        rayTraceRecursive(
-            Ray(
-                raySceneIntersection.get_position(),
-                mat.scatter(ray.direction(), raySceneIntersection.get_normal())
-            ),
-            res,
-            NRemainingBounces-1,
-            update_depth,
-            update_normal
-        );
-        res.color = mat.computeColor(diffuse_contrib, env_contrib);
+        Vec3 scatter_direction;
+        if ( mat.scatter(ray.direction(), raySceneIntersection.get_normal(), scatter_direction) )
+            rayTraceRecursive(
+                Ray(
+                    raySceneIntersection.get_position(),
+                    scatter_direction
+                ),
+                res,
+                NRemainingBounces-1,
+                update_depth,
+                update_normal
+            );
+        res.color = mat.computeColor(diffuse_contrib, env_contrib, lights);
 
 
 
