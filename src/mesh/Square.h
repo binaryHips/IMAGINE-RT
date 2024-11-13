@@ -72,14 +72,16 @@ public:
         height *= scale[1];
     }
 
+    void recomputeVectors(){
+        m_bottom_left = vertices[0].position;
+        m_right_vector = vertices[1].position - vertices[0].position;
+        m_up_vector = vertices[3].position - vertices[0].position;
+        m_normal = Vec3::cross(m_right_vector, m_up_vector) / width / height;
+    }
+
     RaySquareIntersection intersect(const Ray &ray) const {
         RaySquareIntersection intersection;
         intersection.intersectionExists = false;
-
-        Vec3 m_bottom_left = vertices[0].position;
-        Vec3 m_right_vector = vertices[1].position - vertices[0].position;
-        Vec3 m_up_vector = vertices[3].position - vertices[0].position;
-        Vec3 m_normal = Vec3::cross(m_right_vector, m_up_vector) / width / height;
 
         float D = Vec3::dot(m_bottom_left, m_normal);
 

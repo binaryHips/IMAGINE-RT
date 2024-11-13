@@ -107,7 +107,6 @@ void init () {
     camera.resize (SCREENWIDTH, SCREENHEIGHT);
     initLight ();
     //glCullFace (GL_BACK);
-    glDisable (GL_CULL_FACE);
     glDepthFunc (GL_LESS);
     glEnable (GL_DEPTH_TEST);
     glClearColor (0.2f, 0.2f, 0.3f, 1.0f);
@@ -133,7 +132,7 @@ void clear () {
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
-        20
+        50
     );
     //renderer << postprocess::utils::Normals::create();
     //renderer << postprocess::utils::Depth::create();

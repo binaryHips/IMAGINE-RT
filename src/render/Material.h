@@ -15,6 +15,7 @@ static float randomUnitFloat()
     return (float)(rng()) * (2.0 / (float)(rng.max())) - 1.0;
 }
 
+
 enum LightType {
     LightType_Spherical,
     LightType_Quad
@@ -91,7 +92,6 @@ class Material {
 
 
 class PhongMaterial: public Material{
-
 
     public:
 

@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <iostream>
 
+const float MIN_OFFSET_VALUE = 1e-6;
+
+
 class Vec3;
 static inline Vec3 operator + (Vec3 const & a , Vec3 const & b);
 static inline Vec3 operator - (Vec3 const & a , Vec3 const & b);
@@ -112,6 +115,9 @@ static inline Vec3 operator + (Vec3 const & a , Vec3 const & b) {
 }
 static inline Vec3 operator - (Vec3 const & a , Vec3 const & b) {
    return Vec3(a[0]-b[0] , a[1]-b[1] , a[2]-b[2]);
+}
+static inline Vec3 operator - (Vec3 const & a) {
+   return Vec3(-a[0] , -a[1] , -a[2]);
 }
 static inline Vec3 operator * (float a , Vec3 const & b) {
    return Vec3(a*b[0] , a*b[1] , a*b[2]);

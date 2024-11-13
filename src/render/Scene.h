@@ -140,7 +140,7 @@ public:
 
             RaySphereIntersection intersection = spheres[i].intersect(ray);
 
-            if (intersection.intersectionExists && intersection.t < min_dist && intersection.t >= min_offset){
+            if (intersection.intersectionExists && intersection.t < min_dist && intersection.t >= MIN_OFFSET_VALUE){
                 result.intersectionExists = true;
 
                 min_dist = intersection.t;
@@ -155,10 +155,7 @@ public:
 
             RaySquareIntersection intersection = squares[i].intersect(ray);
 
-            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= min_offset){
-
-                // condition for backface culling
-                if (Vec3::dot(intersection.normal, ray.direction()) > 0) return result;
+            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= MIN_OFFSET_VALUE && (Vec3::dot(intersection.normal, ray.direction()) < 0)){ // condition for backface culling
 
                 result.intersectionExists = true;
 
@@ -176,7 +173,7 @@ public:
 
             RayTriangleIntersection intersection = meshes[i].intersect(ray);
 
-            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= min_offset){
+            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= MIN_OFFSET_VALUE){
 
                 // condition for backface culling
                 //if (Vec3::dot(intersection.normal, ray.direction()) > 0) return result;
@@ -198,7 +195,6 @@ public:
 
 
     bool computeOcclusion(Ray const & ray, const Light & light) const { // TODO how to compute for transparent objects?
-        const float min_offset = 1e-6;
 
         float dist_to_light = (light.pos - ray.origin()).norm();
         float power = 1.0;
@@ -209,7 +205,7 @@ public:
             RaySphereIntersection intersection = spheres[i].intersect(ray);
 
             if (intersection.intersectionExists &&
-                intersection.t >= min_offset &&
+                intersection.t >= MIN_OFFSET_VALUE &&
                 intersection.t < dist_to_light
                 ){
                 return true;
@@ -222,7 +218,7 @@ public:
             RaySquareIntersection intersection = squares[i].intersect(ray);
 
             if (intersection.intersectionExists &&
-                intersection.t >= min_offset &&
+                intersection.t >= MIN_OFFSET_VALUE &&
                 intersection.t < dist_to_light
                 ){
                 return true;
@@ -245,14 +241,12 @@ public:
                     l
                     )){
                     diffuse_contrib += l.material * l.powerCorrection / Vec3::dot(l.pos- position, l.pos- position) / (float)N_OCCLUSION_RAYS; // light is an inverse square law
-
                 }
             }
         }
     }
 
     void rayTraceRecursive( Ray const & ray , RayResult & res, int NRemainingBounces, bool update_depth = true, bool update_normal = true ) const {
-        //std::cout<< "HELLO " << std::endl;
         if (NRemainingBounces == 0) return;
 
         RaySceneIntersection raySceneIntersection = computeIntersection(ray);
@@ -361,6 +355,7 @@ public:
             s.scale(Vec3(4., 4., 1.));
             s.rotate_x(-90);
             s.build_arrays();
+            s.recomputeVectors();
             s.material_id = planeMat;
         }
         // added 
@@ -410,6 +405,7 @@ public:
             Square & s = squares[squares.size() - 1];
             s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
             s.build_arrays();
+            s.recomputeVectors();
             s.material_id = planeMat;
         }
         */
@@ -485,6 +481,7 @@ public:
             s.scale(Vec3(2., 2., 1.));
             s.translate(Vec3(0., 0., -2.));
             s.build_arrays();
+            s.recomputeVectors();
             s.material_id = planeMatWhite;
         }
 
@@ -497,6 +494,7 @@ public:
             s.translate(Vec3(0., 0., -2.));
             s.rotate_y(90);
             s.build_arrays();
+            s.recomputeVectors();
             s.material_id = planeMatRed;
         }
 
@@ -508,6 +506,7 @@ public:
             s.scale(Vec3(2., 2., 1.));
             s.rotate_y(-90);
             s.build_arrays();
+            s.recomputeVectors();
             s.material_id = planeMatGreen;
         }
 
@@ -519,6 +518,7 @@ public:
             s.scale(Vec3(2., 2., 1.));
             s.rotate_x(-90);
             s.build_arrays();
+            s.recomputeVectors();
             s.material_id = planeMatWhite;
         }
 
@@ -530,6 +530,7 @@ public:
             s.scale(Vec3(2., 2., 1.));
             s.rotate_x(90);
             s.build_arrays();
+            s.recomputeVectors();
             s.material_id = planeMatPurple;
         }
         
@@ -541,6 +542,7 @@ public:
             s.scale(Vec3(2., 2., 1.));
             s.rotate_y(180);
             s.build_arrays();
+            s.recomputeVectors();
             s.material_id = planeMatWhite;
         }
         
@@ -553,7 +555,7 @@ public:
             s.m_center = Vec3(1.0, -1.25, 0.5);
             s.m_radius = 0.75f;
             s.build_arrays();
-            s.material_id = glassSphereMat;
+            s.material_id = planeMatPurple;
         }
 
 

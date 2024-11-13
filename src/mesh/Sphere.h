@@ -96,13 +96,20 @@ public:
         );
 
         if (discr >= 0){
+
+            float t_r1 = (-b - std::sqrt(discr)) / (2.0 * a);
+            float t_r2 = (-b + std::sqrt(discr)) / (2.0 * a);
+
             intersection.intersectionExists = true;
-            intersection.t = (-b - std::sqrt(discr)) / (2.0 * a); // against self-intersect
+            if (t_r1 >MIN_OFFSET_VALUE){
+                intersection.t = (-b - std::sqrt(discr)) / (2.0 * a);
+                intersection.secondintersection = ray.at((-b + std::sqrt(discr)) / (2.0 * a));
+            } else{
+                intersection.t = (-b + std::sqrt(discr)) / (2.0 * a);
+            }
             intersection.intersection = ray.at(intersection.t);
-            intersection.secondintersection = ray.at((-b + std::sqrt(discr)) / (2.0 * a));
             intersection.normal = (ray.at(intersection.t) - m_center) / m_radius;
         }
-
         return intersection;
     }
 };

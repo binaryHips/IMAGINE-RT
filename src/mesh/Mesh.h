@@ -85,6 +85,10 @@ protected:
             positions_array[3*v + 1] = vertices[v].position[1];
             positions_array[3*v + 2] = vertices[v].position[2];
         }
+
+        //margin
+        AABB_v1 -= Vec3(0.001, 0.001, 0.001);
+        AABB_v2 += Vec3(0.001, 0.001, 0.001);
     }
     void build_normals_array() {
         normalsArray.resize( 3 * vertices.size() );
@@ -247,7 +251,7 @@ public:
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material_color);
         glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material_ambient);
 
-        glEnableClientState(GL_VERTEX_ARRAY) ;
+        glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState (GL_NORMAL_ARRAY);
         glNormalPointer (GL_FLOAT, 3*sizeof (float), (GLvoid*)(normalsArray.data()));
         glVertexPointer (3, GL_FLOAT, 3*sizeof (float) , (GLvoid*)(positions_array.data()));
@@ -290,7 +294,7 @@ public:
         closestIntersection.intersectionExists = false;
         closestIntersection.t = FLT_MAX;
 
-        //if (!intersection(ray)) return closestIntersection;
+        if (!intersection(ray)) return closestIntersection;
 
         // si dans AABB
 
