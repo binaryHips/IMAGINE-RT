@@ -104,11 +104,12 @@ public:
             if (t_r1 >MIN_OFFSET_VALUE){
                 intersection.t = (-b - std::sqrt(discr)) / (2.0 * a);
                 intersection.secondintersection = ray.at((-b + std::sqrt(discr)) / (2.0 * a));
+                intersection.normal = (ray.at(intersection.t) - m_center) / m_radius;
             } else{
                 intersection.t = (-b + std::sqrt(discr)) / (2.0 * a);
+                intersection.normal = -(ray.at(intersection.t) - m_center) / m_radius;
             }
             intersection.intersection = ray.at(intersection.t);
-            intersection.normal = (ray.at(intersection.t) - m_center) / m_radius;
         }
         return intersection;
     }

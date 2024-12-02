@@ -101,8 +101,8 @@ public:
         if (t > 0 && (proj1<width&&proj1>0)&&(proj2<height&&proj2>0)){
 
             intersection.intersectionExists = true;
-            intersection.u = proj1;
-            intersection.v = proj2;
+            intersection.u = proj1/width;
+            intersection.v = proj2/height;
             intersection.t = t;
             intersection.intersection = ray.at(intersection.t);
             intersection.normal = m_normal;

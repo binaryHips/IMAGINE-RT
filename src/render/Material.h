@@ -21,11 +21,6 @@ enum LightType {
     LightType_Quad
 };
 
-enum MaterialType {
-    Material_Diffuse_Blinn_Phong ,
-    Material_Glass,
-    Material_Mirror
-};
 
 struct Light {
     Vec3 material;
@@ -162,7 +157,30 @@ class ReflectiveMaterial: public Material{
 };
 
 class TexturedMaterial: public Material{
+public:
+        TexturedMaterial(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color){
+            this->ambient_color = ambient_color;
+            this->diffuse_color = diffuse_color;
+            this->specular_color = specular_color;
+        }
 
+        static std::shared_ptr< TexturedMaterial > create(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color) {
+            return std::make_shared< TexturedMaterial >(ambient_color, diffuse_color, specular_color);
+        }
+
+
+        inline bool scatter(Vec3 incident, Vec3 normal, Vec3 & res) const override {
+
+            res = incident.reflect(normal);
+            return true;
+        }
+
+        inline Vec3 computeColor(Vec3 diffuse_contrib, Vec3 scatter_result, const std::vector< Light > & lights) const override{
+            return scatter_result;
+        }
+
+
+};
 
 };
 
@@ -209,7 +227,6 @@ public:
     }
 
     inline bool scatter(Vec3 incident, Vec3 normal, Vec3 & res) const override {
-
         res = incident.refract(normal, 1.0003, index_medium);
         return true;
     }

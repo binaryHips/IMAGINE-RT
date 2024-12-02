@@ -285,6 +285,7 @@ public:
 
         Vec3 scatter_direction;
         if ( mat.scatter(ray.direction(), raySceneIntersection.get_normal(), scatter_direction) )
+            //std::cout << scatter_direction << std::endl;
             rayTraceRecursive(
                 Ray(
                     raySceneIntersection.get_position(),
@@ -295,7 +296,7 @@ public:
                 update_depth,
                 update_normal
             );
-        res.color = mat.computeColor(diffuse_contrib, env_contrib, lights);
+        res.color += mat.computeColor(diffuse_contrib, env_contrib, lights);
 
 
 
@@ -336,13 +337,25 @@ public:
             )
         );
 
+        int glassSphereMat = addMaterial(
+            GlassMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.05
+            )
+        );
+
+        int mirrorSphereMat = addMaterial(
+            MirrorMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.3,0.9 ), Vec3( 0.2,0.2,0.2 )
+            )
+        );
+
         {
             spheres.resize( spheres.size() + 1 );
             Sphere & s = spheres[spheres.size() - 1];
             s.m_center = Vec3(0. , 0. , 0.);
             s.m_radius = 1.f;
             s.build_arrays();
-            s.material_id = sphereMat;
+            s.material_id = glassSphereMat;
         }
 
         // added 
@@ -412,9 +425,9 @@ public:
 
         //added
         Mesh mesh;
-        mesh.loadOFF("/home/e20210002460/Master/Prog 3D/ray_tracing/HAI719I_Raytracer/models/tripod.off");
+        mesh.loadOFF("/home/e20210002460/Master/Prog_3D/ray_tracing/HAI719I_Raytracer/models/suzanne.off");
         mesh.build_arrays();
-        //std::cout << mesh.triangles.size() << std::endl;
+        std::cout << mesh.triangles.size() << std::endl;
         mesh.material_id = planeMat;
         meshes.push_back(mesh); // copy but don't care
     }
@@ -429,7 +442,7 @@ public:
         //materials
         int glassSphereMat = addMaterial(
             GlassMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.05
+                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
             )
         );
 
@@ -555,7 +568,7 @@ public:
             s.m_center = Vec3(1.0, -1.25, 0.5);
             s.m_radius = 0.75f;
             s.build_arrays();
-            s.material_id = planeMatPurple;
+            s.material_id = glassSphereMat;
         }
 
 

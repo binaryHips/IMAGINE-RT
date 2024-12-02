@@ -117,11 +117,6 @@ protected:
 
             triangle_primitives[t] = Triangle(vertices[ triangles[t].v[0] ].position,vertices[ triangles[t].v[1] ].position,vertices[ triangles[t].v[2] ].position);
         }
-
-        // for RT
-
-        triangle_primitives.resize(triangles.size());
-
     }
 
     // https://tavianator.com/2011/ray_box.html
@@ -165,7 +160,7 @@ public:
     Vec3 AABB_v1, AABB_v2;
     int material_id;
 
-    void loadOFF (const std::string & filename);
+    void loadOFF (std::string filename);
     void recomputeNormals ();
     void centerAndScaleToUnit ();
     void scaleUnit ();

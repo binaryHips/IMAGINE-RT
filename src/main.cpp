@@ -123,10 +123,6 @@ void clear () {
 
 }
 
-// ------------------------------------
-// Replace the code of this 
-// functions for alternative rendering.
-// ------------------------------------
 
 
 void setup_renderer(){
@@ -292,7 +288,6 @@ int main (int argc, char ** argv) {
     glutInitDisplayMode (GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
     glutInitWindowSize (SCREENWIDTH, SCREENHEIGHT);
     window = glutCreateWindow ("gMini");
-
     init ();
     glutIdleFunc (idle);
     glutDisplayFunc (display);
@@ -309,12 +304,15 @@ int main (int argc, char ** argv) {
 
     setup_renderer();
 
+
     selected_scene=0;
     scenes.resize(3);
     scenes[0].setup_single_sphere();
-    scenes[1].setup_single_square();
-    scenes[2].setup_cornell_box();
 
+    scenes[1].setup_single_square();
+
+    scenes[2].setup_cornell_box();
+    
     glutMainLoop ();
     return EXIT_SUCCESS;
 }
