@@ -1,12 +1,12 @@
-#ifndef MATERIAL_H
-#define MATERIAL_H
+#pragma once
 
-#include "src/utils/imageLoader.h"
 #include "src/utils/Vec3.h"
 #include <cmath>
 #include <memory>
 #include <random>
 #include <GL/glut.h>
+#include "src/utils/Texture.h"
+
 
 
 static float randomUnitFloat()
@@ -14,6 +14,8 @@ static float randomUnitFloat()
     static thread_local std::mt19937 rng(std::random_device{}());
     return (float)(rng()) * (2.0 / (float)(rng.max())) - 1.0;
 }
+
+
 
 
 enum LightType {
@@ -54,6 +56,25 @@ struct Light {
     }
 };
 
+struct LightingData{
+    Vec3 position;
+    Vec3 normal;
+    Vec3 view;
+    Vec3 diffuse_contrib;
+    Vec3 scatter_result;
+    const std::vector< Light > & lights;
+
+public:
+    LightingData(Vec3 position, Vec3 normal, Vec3 view, Vec3 diffuse_contrib, Vec3 scatter_result, const std::vector< Light > & lights)
+    : position(position),
+    normal(normal),
+    view(view),
+    diffuse_contrib(diffuse_contrib),
+    scatter_result(scatter_result),
+    lights(lights)
+    {}
+
+};
 
 class Material {
     public:
@@ -79,7 +100,9 @@ class Material {
             return true;
         };
 
-        virtual Vec3 computeColor(Vec3 diffuse_contrib, Vec3 scatter_result, const std::vector< Light > & lights) const{
+        virtual ~Material() = default;
+
+        virtual Vec3 computeColor(LightingData l) const{
             return Vec3(1, 1, 1);
         }
 };
@@ -91,7 +114,7 @@ class PhongMaterial: public Material{
     public:
 
         float shininess;
-
+        PhongMaterial() = default;
         PhongMaterial(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color, float shininess){
             this->ambient_color = ambient_color;
             this->diffuse_color = diffuse_color;
@@ -107,16 +130,35 @@ class PhongMaterial: public Material{
             return false;
         }
 
-        inline Vec3 computeColor(Vec3 diffuse_contrib, Vec3 scatter_result, const std::vector< Light > & lights) const override{
-            diffuse_contrib[0] *= diffuse_color[0];
-            diffuse_contrib[1] *= diffuse_color[1];
-            diffuse_contrib[2] *= diffuse_color[2];
 
-            scatter_result[0] *= specular_color[0];
-            scatter_result[1] *= specular_color[1];
-            scatter_result[2] *= specular_color[2];
+        inline Vec3 computeColor(LightingData l) const override{
 
-            return ambient_color + diffuse_contrib + scatter_result * shininess;
+            // Phong code given by Kai Nigh and modified by me
+            Vec3 result = ambient_color;
+            for(const Light & light: l.lights){
+
+
+
+                // Diffuse 
+
+                Vec3 lightDir = (light.pos - l.position).normalized();
+                float diff = std::max(Vec3::dot(l.normal, lightDir), 0.0f);
+                Vec3 diffuse;
+                diffuse[0] = light.material[0] * (diff * diffuse_color[0]);
+                diffuse[1] = light.material[1] * (diff * diffuse_color[1]);
+                diffuse[2] = light.material[2] * (diff * diffuse_color[2]);
+
+                // Specular
+
+                Vec3 reflectDir = lightDir.reflect(l.normal);
+                float spec = std::pow(std::max(Vec3::dot(l.view, reflectDir), 0.0f), shininess);
+                Vec3 specular = (spec * specular_color);
+
+                result +=  (diffuse + specular);
+            }
+            
+
+            return result;
         }
 };
 
@@ -143,21 +185,24 @@ class ReflectiveMaterial: public Material{
             return true;
         }
 
-        inline Vec3 computeColor(Vec3 diffuse_contrib, Vec3 scatter_result, const std::vector< Light > & lights) const override{
-            diffuse_contrib[0] *= diffuse_color[0];
-            diffuse_contrib[1] *= diffuse_color[1];
-            diffuse_contrib[2] *= diffuse_color[2];
+        inline Vec3 computeColor(LightingData l) const override{
+            l.diffuse_contrib[0] *= diffuse_color[0];
+            l.diffuse_contrib[1] *= diffuse_color[1];
+            l.diffuse_contrib[2] *= diffuse_color[2];
 
-            scatter_result[0] *= specular_color[0];
-            scatter_result[1] *= specular_color[1];
-            scatter_result[2] *= specular_color[2];
+            l.scatter_result[0] *= specular_color[0];
+            l.scatter_result[1] *= specular_color[1];
+            l.scatter_result[2] *= specular_color[2];
 
-            return ambient_color + diffuse_contrib + scatter_result * shininess;
+            return ambient_color + l.diffuse_contrib + l.scatter_result * shininess;
         }
 };
 
-class TexturedMaterial: public Material{
+class TexturedMaterial: public PhongMaterial{
 public:
+        std::unique_ptr<Texture> albedo_map;
+        std::unique_ptr<Texture> normal_map;
+
         TexturedMaterial(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color){
             this->ambient_color = ambient_color;
             this->diffuse_color = diffuse_color;
@@ -175,8 +220,13 @@ public:
             return true;
         }
 
-        inline Vec3 computeColor(Vec3 diffuse_contrib, Vec3 scatter_result, const std::vector< Light > & lights) const override{
-            return scatter_result;
+
+
+        inline Vec3 computeColor(LightingData l) const final {
+            
+            albedo_map->sampleVector(0, 0);
+            
+            return l.scatter_result;
         }
 
 
@@ -202,8 +252,8 @@ public:
             return true;
         }
 
-        inline Vec3 computeColor(Vec3 diffuse_contrib, Vec3 scatter_result, const std::vector< Light > & lights) const override{
-            return scatter_result;
+        inline Vec3 computeColor(LightingData l) const override{
+            return l.scatter_result;
         }
 
 
@@ -230,9 +280,7 @@ public:
         return true;
     }
 
-    inline Vec3 computeColor(Vec3 diffuse_contrib, Vec3 scatter_result, const std::vector< Light > & lights) const override{
-        return scatter_result;
+    inline Vec3 computeColor(LightingData l) const override{
+        return l.scatter_result;
     }
 };
-
-#endif

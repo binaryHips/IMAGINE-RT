@@ -1,4 +1,5 @@
 
+#pragma once
 #include "Renderer.h"
 
 #include <iostream>
@@ -202,18 +203,29 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
 void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & scene){
 
     Vec3 pos , dir;
+    RayResult acc;
+    size_t p;
     for (int y=0; y<renderer.h; y++){
         std::clog << "\r\tScanlines remaining: " << (renderer.h-y) << ' ' << std::flush;
         for (int x=0; x<renderer.w; x++) {
+            acc = RayResult();
+            p = idx_from_coord(x,y , renderer.w);
             for( unsigned int s = 0 ; s < renderer.nsamples ; ++s ) {
                 float u = ((float)(x) + (float)(rand())/(float)(RAND_MAX)) / renderer.w;
                 float v = ((float)(y) + (float)(rand())/(float)(RAND_MAX)) / renderer.h;
                 // this is a random uv that belongs to the pixel xy.
                 screen_space_to_world_space_ray(u,v,pos,dir);
-                Vec3 color = scene.rayTrace( Ray(pos , dir) ).color;
-                renderer.image.at(x + y*renderer.w) += Color(color);
+
+                RayResult res = scene.rayTrace( Ray(pos , dir) );
+                acc.color += res.color;
+                acc.normal += res.normal;
+                acc.depth += res.depth;
             }
-            renderer.image.at(x + y*renderer.w)  /= renderer.nsamples;
+
+            
+            renderer.image[p] = Color(acc.color / renderer.nsamples);
+            renderer.screen_space_normals[p] = Color(acc.normal / renderer.nsamples);
+            renderer.screen_space_depth[p] = acc.depth / renderer.nsamples;
         }
     }
 }

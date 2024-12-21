@@ -5,7 +5,7 @@
 void Mesh::loadOFF (std::string filename) {
     std::ifstream in (filename.c_str ());
     if (!in){
-        std::cout << "ERROR: Can't load a mesh. Did you send the right filepath?" << std::endl;
+        std::cout << "ERROR: Can't load a mesh. Did you send the right filepath? (" << filename << ")" << std::endl;
         exit (EXIT_FAILURE);
     }
     std::string offString;

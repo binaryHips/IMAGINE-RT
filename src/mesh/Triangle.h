@@ -3,7 +3,7 @@
 #include "src/utils/Vec3.h"
 #include "src/utils/Ray.h"
 #include "Plane.h"
-
+#include <cfloat>
 struct RayTriangleIntersection{
     bool intersectionExists;
     float t;
@@ -63,7 +63,7 @@ public:
 
     RayTriangleIntersection getIntersection( Ray const & ray ) const { // implementé à partir de https://fr.wikipedia.org/wiki/Algorithme_d%27intersection_de_M%C3%B6ller-Trumbore
         RayTriangleIntersection result;
-
+        result.t = FLT_MAX;
         Vec3 edge1, edge2, h, s, q;
         float a,f,u,v;
         edge1 = m_c[1] -  m_c[0];
@@ -72,7 +72,7 @@ public:
         h = Vec3::cross(ray.direction(), edge2);
         a = Vec3::dot(edge1, h);
 
-        if (a > -0.0000001 && a < 0.0000001) return result;    // Le rayon est parallèle au triangle.
+        if (a > -0.000001 && a < 0.000001) return result;    // Le rayon est parallèle au triangle.
 
         f = 1.0/a;
         s = ray.origin() - m_c[0];

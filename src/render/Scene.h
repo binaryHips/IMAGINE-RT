@@ -296,7 +296,7 @@ public:
                 update_depth,
                 update_normal
             );
-        res.color += mat.computeColor(diffuse_contrib, env_contrib, lights);
+        res.color += mat.computeColor(LightingData(raySceneIntersection.get_position(), raySceneIntersection.get_normal(), ray.direction(), diffuse_contrib, env_contrib, lights));
 
 
 
@@ -393,7 +393,7 @@ public:
 
         int planeMat = addMaterial(
             PhongMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 0.8,0.8,0.8 ), Vec3( 0.2,0.2,0.2 ), 0.0
+                Vec3( 0.0,0.0,0.0 ), Vec3( 0.8,0.8,0.8 ), Vec3( 0.2,0.2,0.2 ), 1.0
             )
         );
 
@@ -425,9 +425,8 @@ public:
 
         //added
         Mesh mesh;
-        mesh.loadOFF("/home/e20210002460/Master/Prog_3D/ray_tracing/HAI719I_Raytracer/models/suzanne.off");
+        mesh.loadOFF("./models/suzanne.off");
         mesh.build_arrays();
-        std::cout << mesh.triangles.size() << std::endl;
         mesh.material_id = planeMat;
         meshes.push_back(mesh); // copy but don't care
     }

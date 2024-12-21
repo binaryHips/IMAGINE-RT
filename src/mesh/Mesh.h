@@ -87,8 +87,8 @@ protected:
         }
 
         //margin
-        AABB_v1 -= Vec3(0.001, 0.001, 0.001);
-        AABB_v2 += Vec3(0.001, 0.001, 0.001);
+        AABB_v1 -= Vec3(0.0001, 0.0001, 0.0001);
+        AABB_v2 += Vec3(0.0001, 0.0001, 0.0001);
     }
     void build_normals_array() {
         normalsArray.resize( 3 * vertices.size() );
@@ -116,6 +116,7 @@ protected:
             triangles_array[3*t + 2] = triangles[t].v[2];
 
             triangle_primitives[t] = Triangle(vertices[ triangles[t].v[0] ].position,vertices[ triangles[t].v[1] ].position,vertices[ triangles[t].v[2] ].position);
+            
         }
     }
 
@@ -289,7 +290,7 @@ public:
         closestIntersection.intersectionExists = false;
         closestIntersection.t = FLT_MAX;
 
-        if (!intersection(ray)) return closestIntersection;
+        //if (!intersection(ray)) return closestIntersection;
 
         // si dans AABB
 
