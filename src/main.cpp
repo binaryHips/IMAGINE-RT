@@ -38,6 +38,7 @@
 #include "render/Postprocess.h"
 
 #include "src/utils/imageLoader.h"
+#include "src/utils/scenes_definitions.h"
 
 #include "src/render/Material.h"
 
@@ -128,7 +129,7 @@ void clear () {
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
-        5
+        30
     );
     //renderer << postprocess::utils::Normals::create();
     //renderer << postprocess::utils::Depth::create();
@@ -306,12 +307,7 @@ int main (int argc, char ** argv) {
 
 
     selected_scene=0;
-    scenes.resize(3);
-    scenes[0].setup_single_sphere();
-
-    scenes[1].setup_single_square();
-
-    scenes[2].setup_cornell_box();
+    scenes = getScenes();
     
     glutMainLoop ();
     return EXIT_SUCCESS;

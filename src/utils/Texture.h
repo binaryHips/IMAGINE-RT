@@ -8,6 +8,7 @@
 #include <memory>
 #include <algorithm>
 #include <utility>
+#include <cmath>
 enum RepeatMode {
     TILE,
     MIRROR,
@@ -17,12 +18,11 @@ enum RepeatMode {
 
 class Texture{
 
-private:
+public:
     int w, h;
 
-    virtual Color accessData(int u, int v) const;
+    virtual Color accessData(int u, int v) const = 0;
     
-public:
     RepeatMode repeat_mode = RepeatMode::TILE;
 
     Color sampleColor(int u, int v) const{
@@ -44,15 +44,14 @@ public:
             
             case RepeatMode::MIRROR:
 
-                u = u % (w * 2);
-                v = v % (h * 2);
+                u = u % (w * 2 ); // do we need the -1?
+                v = v % (h * 2 );
 
                 if (u<0) u += w;
                 if (v<0) v += h;
 
-                if (u >= w-1) u = 2*w - u;
-                if (v >= h-1) v = 2*h - v;
-
+                if (u >= w) u = 2*w - u;
+                if (v >= h) v = 2*h - v;
                 return accessData(
                     u,
                     v
@@ -67,28 +66,37 @@ public:
 
         return sampleColor(u, v).toVec3();
     }
+
+    Vec3 sampleVector(Vec2 uv) const{ // Normalized coordinates!
+
+        return sampleColor(lround(uv[0] * (w-1)), lround(uv[1] * (h-1))).toVec3();
+    }
 };
 
 class ImageTexture : public Texture{
 public:
-    int w, h;
+
 
     std::vector< Color > data;
 
-    ImageTexture(std::vector< Color >&& data, int w, int h)
-    : w(w),
-    h(h),
-    data(std::move(data))
-    {}
+    ImageTexture(int w, int h){
+        this->w = w;
+        this->h = h;
+    }
 
-    static std::unique_ptr< Texture > fromOff() {
+
+
+    static std::unique_ptr< ImageTexture > fromPPM(const std::string& path) {
         
         ppmLoader::ImageRGB im;
-        return std::make_unique<ImageTexture>(std::move(im.data), im.w, im.h);
+        ppmLoader::load_ppm(im, path);
+        auto p = std::make_unique<ImageTexture>(im.w, im.h);
+        p->data = std::move(im.data);
+        return p;
     }
 
     Color accessData(int u, int v) const override{
-        return data[u * w + v];
+        return data[v * w + u];
 
     }
 

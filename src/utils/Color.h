@@ -7,11 +7,10 @@ public:
     unsigned char r = 0;
     unsigned char g = 0;
     unsigned char b = 0;
-    unsigned char a = 255;
 
     Color() = default;
     Color(unsigned char red, unsigned char green, unsigned char blue): r(red), g(green), b(blue) {}
-    Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha): r(red), g(green), b(blue), a(alpha) {}
+    Color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha): r(red), g(green), b(blue) {}
 
     Color(const Vec3 & v){
 

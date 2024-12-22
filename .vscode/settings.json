@@ -108,7 +108,8 @@
     "streambuf": "cpp",
     "thread": "cpp",
     "cinttypes": "cpp",
-    "typeinfo": "cpp"
+    "typeinfo": "cpp",
+    "cstring": "cpp"
   },
   "sonarlint.pathToCompileCommands": "${workspaceFolder}/compile_commands.json"
 }

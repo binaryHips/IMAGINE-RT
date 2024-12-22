@@ -8,7 +8,7 @@
 struct RaySphereIntersection{
     bool intersectionExists;
     float t;
-    float theta,phi;
+    Vec2 uv;
     Vec3 intersection;
     Vec3 secondintersection;
     Vec3 normal;

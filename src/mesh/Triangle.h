@@ -7,7 +7,7 @@
 struct RayTriangleIntersection{
     bool intersectionExists;
     float t;
-    float u, v;
+    Vec2 uv;
     unsigned int tIndex;
     Vec3 intersection;
     Vec3 normal;
@@ -90,11 +90,14 @@ public:
         {
 
             result.intersectionExists = true;
-            result.u = 0.0;
-            result.v = 0.0;
             result.t = t;
             result.intersection = ray.at(t);
             result.normal = m_normal;
+
+            
+
+            result.uv = Vec2(0.0, 0.0);
+
             return result;
         }
         return result;

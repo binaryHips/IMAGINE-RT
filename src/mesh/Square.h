@@ -1,5 +1,4 @@
-#ifndef SQUARE_H
-#define SQUARE_H
+#pragma once
 #include "src/utils/Vec3.h"
 #include <vector>
 #include "Mesh.h"
@@ -8,9 +7,11 @@
 struct RaySquareIntersection{
     bool intersectionExists;
     float t;
-    float u,v;
+    Vec2 uv;
     Vec3 intersection;
     Vec3 normal;
+    Vec3 tangent;
+    Vec3 bitangent;
 };
 
 
@@ -101,15 +102,14 @@ public:
         if (t > 0 && (proj1<width&&proj1>0)&&(proj2<height&&proj2>0)){
 
             intersection.intersectionExists = true;
-            intersection.u = proj1/width;
-            intersection.v = proj2/height;
+            intersection.uv = Vec2(proj1/width, 1.0 - proj2/height); //l'inversion est une question de préférence
             intersection.t = t;
             intersection.intersection = ray.at(intersection.t);
             intersection.normal = m_normal;
+            intersection.tangent = m_right_vector / width;
+            intersection.bitangent = m_up_vector / height;
         }
-    
-
         return intersection;
     }
 };
-#endif // SQUARE_H
+

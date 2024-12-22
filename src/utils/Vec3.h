@@ -1,9 +1,9 @@
-#ifndef VEC3_H
-#define VEC3_H
+#pragma once
 
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <array>
 
 const float MIN_OFFSET_VALUE = 1e-6;
 
@@ -15,7 +15,7 @@ static inline Vec3 operator * (float a , Vec3 const & b);
 static inline Vec3 operator / (Vec3 const &  a , float b);
 class Vec3 {
 private:
-    float mVals[3];
+    std::array<float, 3> mVals;
 public:
     Vec3() {mVals[0] = mVals[1] = mVals[2] = 0.f;}
     Vec3( float x , float y , float z ) {
@@ -314,4 +314,86 @@ inline static std::ostream &operator<<(std::ostream &s, Mat3 const &m) {
 }
 
 
-#endif
+
+class Vec2;
+static inline Vec2 operator + (Vec2 const & a , Vec2 const & b);
+static inline Vec2 operator - (Vec2 const & a , Vec2 const & b);
+static inline Vec2 operator * (float a , Vec2 const & b);
+static inline Vec2 operator / (Vec2 const &  a , float b);
+class Vec2 {
+private:
+    std::array<float, 2> mVals;
+public:
+    Vec2() {mVals[0] = mVals[1] = 0.f;}
+    Vec2( float x , float y) {
+       mVals[0] = x; mVals[1] = y;
+    }
+    float & operator [] (unsigned int c) { return mVals[c]; }
+    float operator [] (unsigned int c) const { return mVals[c]; }
+    Vec2& operator = (Vec2 const & other) {
+       mVals[0] = other[0] ; mVals[1] = other[1];
+       return *this;
+    }
+    float squareLength() const {
+       return mVals[0]*mVals[0] + mVals[1]*mVals[1];
+    }
+    float length() const { return sqrt( squareLength() ); }
+    inline
+    float norm() const { return length(); }
+    inline
+    float squareNorm() const { return squareLength(); }
+    void normalize() { float L = length(); mVals[0] /= L; mVals[1] /= L;}
+    static float dot( Vec3 const & a , Vec3 const & b ) {
+       return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+    }
+
+    void operator += (Vec3 const & other) {
+        mVals[0] += other[0];
+        mVals[1] += other[1];
+    }
+    void operator -= (Vec3 const & other) {
+        mVals[0] -= other[0];
+        mVals[1] -= other[1];
+    }
+    void operator *= (float s) {
+        mVals[0] *= s;
+        mVals[1] *= s;
+    }
+    void operator /= (float s) {
+        mVals[0] /= s;
+        mVals[1] /= s;
+    }
+
+    Vec2 normalized() const { return Vec2(*this) / length();}
+
+    static Vec2 compProduct(Vec3 const & a , Vec3 const & b) {
+        return Vec2(a[0]*b[0] , a[1]*b[1]);
+    }
+};
+
+static inline Vec2 operator + (Vec2 const & a , Vec2 const & b) {
+   return Vec2(a[0]+b[0] , a[1]+b[1]);
+}
+static inline Vec2 operator - (Vec2 const & a , Vec2 const & b) {
+   return Vec2(a[0]-b[0] , a[1]-b[1]);
+}
+static inline Vec2 operator - (Vec2 const & a) {
+   return Vec2(-a[0] , -a[1]);
+}
+static inline Vec2 operator * (float a , Vec2 const & b) {
+   return Vec2(a*b[0] , a*b[1]);
+}
+static inline Vec2 operator * (Vec2 const & b , float a ) {
+   return Vec2(a*b[0] , a*b[1]);
+}
+static inline Vec2 operator / (Vec2 const &  a , float b) {
+   return Vec2(a[0]/b , a[1]/b);
+}
+static inline std::ostream & operator << (std::ostream & s , Vec2 const & p) {
+    s << p[0] << "," << p[1];
+    return s;
+}
+static inline std::istream & operator >> (std::istream & s , Vec2 & p) {
+    s >> p[0] >> p[1];
+    return s;
+}

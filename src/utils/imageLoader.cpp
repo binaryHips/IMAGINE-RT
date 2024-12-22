@@ -1,6 +1,6 @@
 
 #include "imageLoader.h"
-
+#include <cstring>
 // Source courtesy of J. Manson
 // http://josiahmanson.com/prose/optimize_ppm/
 
@@ -82,7 +82,8 @@ void load_ppm(ImageRGB &img, const string &name)
     if (mode == 6)
     {
         f.get();
-        f.read((char*)&img.data[0], img.data.size() * 3);
+        f.read( (char*)(img.data.data()) , 3 * img.w * img.h );
+        
     }
     else if (mode == 3)
     {
