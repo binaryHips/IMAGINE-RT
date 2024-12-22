@@ -8,8 +8,8 @@ static Scene sphere_and_plane() {
         Scene scene;
         //materials
 
-        int glassSphereMat = scene.addMaterial(
-            GlassMaterial::create(
+        int sphereMat = scene.addMaterial(
+            PhongMaterial::create(
                 Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.05
             )
         );
@@ -25,7 +25,7 @@ static Scene sphere_and_plane() {
             s.m_center = Vec3(0. , 0. , 0.);
             s.m_radius = 1.f;
             s.build_arrays();
-            s.material_id = glassSphereMat;
+            s.material_id = sphereMat;
         }
 
         // added 
@@ -46,9 +46,9 @@ static Scene sphere_and_plane() {
         {
             scene.lights.resize( scene.lights.size() + 1 );
             Light & light = scene.lights[scene.lights.size() - 1];
-            light.pos = Vec3(0,3,0);
-            light.radius = 1.0f;
-            light.powerCorrection = 20.0f;
+            light.pos = Vec3(0,4,0);
+            light.radius = 2.0f;
+            light.powerCorrection = 10.0f;
             light.type = LightType_Spherical;
             light.material = Vec3(1,1,1);
             light.isInCamSpace = false;
@@ -346,15 +346,26 @@ static Scene mesh() {
             s.build_arrays();
             s.recomputeVectors();
             s.material_id = planeMatWalls;
-        }
+        };
 
         //added
+        /*
         Mesh mesh;
         mesh.loadOFF("./models/suzanne.off");
         mesh.translate(Vec3(0, 0, -1.4));
         mesh.build_arrays();
         mesh.material_id = simpleMat;
         scene.meshes.push_back(mesh); // copy but don't care
+        */
+
+        {
+            scene.spheres.resize( scene.spheres.size() + 1 );
+            Sphere & s = scene.spheres[scene.spheres.size() - 1];
+            s.m_center = Vec3(0. , 0. , -1.4);
+            s.m_radius = 1.f;
+            s.build_arrays();
+            s.material_id = simpleMat;
+        }
         
 
         return scene;

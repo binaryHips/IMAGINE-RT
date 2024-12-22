@@ -14,6 +14,7 @@
 #include <iterator>
 #include <chrono>
 #include <thread>
+#include <mutex>
 #include <random>
 #include <memory>
 #include "src/utils/Vec3.h"
@@ -85,7 +86,7 @@ std::array< GLdouble, 16 > inv_model_view, inv_proj;
 std::array< GLdouble, 2 >  near_far_planes;
 
 
-void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY){
+void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx, int & count){
 
     
     static thread_local std::mt19937 rng(std::random_device{}());
@@ -112,13 +113,13 @@ void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int p
                 RayResult res = scene.rayTrace( Ray(pos , dir) );
                 acc.color += res.color;
                 acc.normal += res.normal;
-                acc.depth += res.depth;
+                acc.depth = std::min(acc.depth, res.depth);
             }
 
             
             renderer.image[p] = Color(acc.color / renderer.nsamples);
             renderer.screen_space_normals[p] = Color(acc.normal / renderer.nsamples);
-            renderer.screen_space_depth[p] = acc.depth / renderer.nsamples;
+            renderer.screen_space_depth[p] = acc.depth;
         }
     }
 }
@@ -146,6 +147,9 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
 
     std::thread threads[n_threads];
 
+    std::mutex threads_finished_count_mutex;
+    int nb_threads_finished = 0;
+
     // full squares
     for (int i = 0; i < n_square_x; i+=1){
         for (int j = 0; j < n_square_y; j+=1){
@@ -154,7 +158,8 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
                 ray_trace_square,
                 std::ref(renderer), std::cref(scene),
                 area_size * i, area_size * j, // pos of square (top left corner)
-                area_size, area_size // size of square
+                area_size, area_size, // size of square
+                std::ref(threads_finished_count_mutex), std::ref(nb_threads_finished)
             );
         }
     }
@@ -190,6 +195,8 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
         area_size * i_last, area_size * j_last, // pos of square (top left corner)
         rest_x, rest_y // size of square
     );
+
+
     
     // technically not an accurate countdown because threads
     std::clog << "\r\tBlocks remaining: " << n_threads << " / " << n_threads << ' ' << std::flush;
@@ -199,7 +206,7 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
     }
 }
 
-//DOESNT FILL SCREEN NORMALS AND DEPTH FOR NOW
+
 void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & scene){
 
     Vec3 pos , dir;
@@ -219,13 +226,13 @@ void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & sce
                 RayResult res = scene.rayTrace( Ray(pos , dir) );
                 acc.color += res.color;
                 acc.normal += res.normal;
-                acc.depth += res.depth;
+                acc.depth = std::min(acc.depth, res.depth);
             }
 
             
             renderer.image[p] = Color(acc.color / renderer.nsamples);
             renderer.screen_space_normals[p] = Color(acc.normal / renderer.nsamples);
-            renderer.screen_space_depth[p] = acc.depth / renderer.nsamples;
+            renderer.screen_space_depth[p] = acc.depth;
         }
     }
 }

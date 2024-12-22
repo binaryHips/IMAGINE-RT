@@ -142,9 +142,9 @@ class PhongMaterial: public Material{
 
             // Phong code given by Kai Nigh and modified by me
             Vec3 result = ambient_color;
-            for(const Light & light: l.lights){
+            for(int i = 0; i < l.lights.size(); ++i){
 
-
+                const Light & light = l.lights[i];
 
                 // Diffuse 
 
@@ -161,7 +161,7 @@ class PhongMaterial: public Material{
                 float spec = std::pow(std::max(Vec3::dot(l.view, reflectDir), 0.0f), shininess);
                 Vec3 specular = (spec * specular_color);
 
-                result +=  (diffuse + specular);
+                result +=  (diffuse + specular) * l.lights_contrib[i];
             }
             
 
