@@ -233,6 +233,19 @@ public:
                 return true;
             }
         }
+        // meshes 
+        for (int i = 0; i<squares.size(); ++i){
+
+            if (! getMaterial(squares[i].material_id).casts_shadows ) continue;
+            RaySquareIntersection intersection = squares[i].intersect(ray);
+
+            if (intersection.intersectionExists &&
+                intersection.t >= MIN_OFFSET_VALUE &&
+                intersection.t < dist_to_light
+                ){
+                return true;
+            }
+        }        
 
         return false;
     }

@@ -18,6 +18,7 @@ private:
     std::array<float, 3> mVals;
 public:
     Vec3() {mVals[0] = mVals[1] = mVals[2] = 0.f;}
+    Vec3(float v) {mVals[0] = mVals[1] = mVals[2] = v;}
     Vec3( float x , float y , float z ) {
        mVals[0] = x; mVals[1] = y; mVals[2] = z;
     }

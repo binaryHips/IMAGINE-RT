@@ -31,32 +31,15 @@ public:
         m_normal = nNotNormalized / norm;
         area = norm / 2.f;
     }
+
+
     void setC0( Vec3 const & c0 ) { m_c[0] = c0; } // remember to update the area and normal afterwards!
     void setC1( Vec3 const & c1 ) { m_c[1] = c1; } // remember to update the area and normal afterwards!
     void setC2( Vec3 const & c2 ) { m_c[2] = c2; } // remember to update the area and normal afterwards!
+    Vec3 operator [] (size_t i) const { return m_c[i]; }
+    Vec3& operator [] (size_t i) { return m_c[i]; }
     Vec3 const & normal() const { return m_normal; }
-    Vec3 projectOnSupportPlane( Vec3 const & p ) const {
-        Vec3 result;
-        //TODO completer
-        return result;
-    }
-    float squareDistanceToSupportPlane( Vec3 const & p ) const {
-        float result;
-        //TODO completer
-        return result;
-    }
-    float distanceToSupportPlane( Vec3 const & p ) const { return sqrt( squareDistanceToSupportPlane(p) ); }
-    bool isParallelTo( Line const & L ) const {
-        bool result;
-        //TODO completer
-        return result;
-    }
-    Vec3 getIntersectionPointWithSupportPlane( Line const & L ) const {
-        // you should check first that the line is not parallel to the plane!
-        Vec3 result;
-        //TODO completer
-        return result;
-    }
+
     void computeBarycentricCoordinates( Vec3 const & p , float & u0 , float & u1 , float & u2 ) const {
         //TODO Complete
     }

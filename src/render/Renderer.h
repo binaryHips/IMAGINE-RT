@@ -10,6 +10,7 @@
 #include <thread>
 #include <random>
 #include <memory>
+#include <mutex>
 #include "src/utils/Vec3.h"
 #include "src/render/Camera.h"
 #include "src/render/Scene.h"
@@ -22,7 +23,7 @@
 
 class Renderer{
 
-    friend void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY);
+    friend void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx, int & count);
     friend void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scene);
     friend void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & scene);
 
@@ -88,15 +89,6 @@ public:
         );
         return renderer;
     }
-    
-    /*
-    Renderer & apply(PostProcessEffect* pp) {
-        postProcessPipeline.push_back(
-            pp
-        );
-        return *this;
-    }
-    */
 };
 
 

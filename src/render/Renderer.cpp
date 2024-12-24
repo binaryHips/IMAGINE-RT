@@ -85,10 +85,14 @@ inline int idx_from_coord(int x, int y, int w){
 std::array< GLdouble, 16 > inv_model_view, inv_proj;
 std::array< GLdouble, 2 >  near_far_planes;
 
+inline void print_advancement(int finished_threads, int n_threads=-1){
+    static int total = std::max(n_threads, total);
+    std::clog << "\r\tBlocks remaining: " << total - finished_threads << " / " << total << ' ' << std::flush;
+}
 
 void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx, int & count){
 
-    
+
     static thread_local std::mt19937 rng(std::random_device{}());
 
 
@@ -122,6 +126,9 @@ void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int p
             renderer.screen_space_depth[p] = acc.depth;
         }
     }
+    std::scoped_lock<std::mutex> lock(mtx);
+    ++count;
+    print_advancement(count);
 }
 
 void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scene){
@@ -172,7 +179,8 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
             ray_trace_square,
             std::ref(renderer), std::cref(scene),
             area_size * i, area_size * j_last, // pos of square (top left corner)
-            area_size, rest_y // size of square
+            area_size, rest_y, // size of square
+            std::ref(threads_finished_count_mutex), std::ref(nb_threads_finished)
         );
 
     }
@@ -184,7 +192,8 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
             ray_trace_square,
             std::ref(renderer), std::cref(scene),
             area_size * i_last, area_size * j, // pos of square (top left corner)
-            rest_x, area_size // size of square
+            rest_x, area_size, // size of square
+            std::ref(threads_finished_count_mutex), std::ref(nb_threads_finished)
         );
     }
 
@@ -193,16 +202,12 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
         ray_trace_square,
         std::ref(renderer), std::cref(scene),
         area_size * i_last, area_size * j_last, // pos of square (top left corner)
-        rest_x, rest_y // size of square
+        rest_x, rest_y, // size of square
+        std::ref(threads_finished_count_mutex), std::ref(nb_threads_finished)
     );
-
-
-    
-    // technically not an accurate countdown because threads
-    std::clog << "\r\tBlocks remaining: " << n_threads << " / " << n_threads << ' ' << std::flush;
+    print_advancement(0, n_threads);
     for (int t = 0; t < n_threads; ++t){
         threads[t].join();
-        std::clog << "\r\tBlocks remaining: " << n_threads - t << " / " << n_threads << ' ' << std::flush;
     }
 }
 

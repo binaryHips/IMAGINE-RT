@@ -129,7 +129,7 @@ void clear () {
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
-        30
+        100
     );
     //renderer << postprocess::utils::Normals::create();
     //renderer << postprocess::utils::Depth::create();
