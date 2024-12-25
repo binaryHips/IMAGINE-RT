@@ -6,7 +6,7 @@
 #include "src/mesh/Sphere.h"
 #include "src/mesh/Square.h"
 #include <random>
-
+#include "src/render/KDTree.h"
 
 #include <GL/glut.h>
 
@@ -82,12 +82,15 @@ class RaySceneIntersection{
 
 
 class Scene {
-    std::vector< std::shared_ptr< Material > > materials;
 public:
+    std::vector< std::shared_ptr< Material > > materials;
     std::vector< Mesh > meshes;
     std::vector< Sphere > spheres;
     std::vector< Square > squares;
     std::vector< Light > lights;
+
+    bool useKdTree = false;
+    KDTree kdTree;
 
 
     int addMaterial(const std::shared_ptr < Material > m ){
@@ -99,7 +102,13 @@ public:
         return *materials[i];
     }
 
-    Scene() {
+    Scene() = default;
+
+    void generateKdTree(){
+        if (!meshes.empty()){
+            useKdTree = true;
+            kdTree = KDTree(meshes);
+        }
     }
 
     void draw() {
@@ -178,26 +187,42 @@ public:
         }
         
         // Meshes 
-        for (int i = 0; i<meshes.size(); ++i){
 
-            RayTriangleIntersection intersection = meshes[i].intersect(ray);
+        if (!useKdTree){
+            for (int i = 0; i<meshes.size(); ++i){
 
-            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= MIN_OFFSET_VALUE){
+                RayTriangleIntersection intersection = meshes[i].intersect(ray);
 
-                // condition for backface culling
-                //if (Vec3::dot(intersection.normal, ray.direction()) > 0) return result;
+                if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= MIN_OFFSET_VALUE){
 
-                result.intersectionExists = true;
+                    result.intersectionExists = true;
 
-                result.t = intersection.t;
-                min_dist = intersection.t;
-                result.rayMeshIntersection = intersection;
-                result.typeOfIntersectedObject = INTERSECTION_MESH;
-                result.objectIndex = i;
-                
+                    result.t = intersection.t;
+                    min_dist = intersection.t;
+                    result.rayMeshIntersection = intersection;
+                    result.typeOfIntersectedObject = INTERSECTION_MESH;
+                    result.objectIndex = i;
+                    
+                }
             }
-        }
+        } else {
+            KDTree::KdIntersectionResult intersection = kdTree.getIntersection(ray);
+            if (intersection.triangleIntersection.intersectionExists &&
+                intersection.triangleIntersection.t < min_dist  &&
+                intersection.triangleIntersection.t >= MIN_OFFSET_VALUE)
+                {
 
+                    result.intersectionExists = true;
+
+                    result.t = intersection.triangleIntersection.t;
+                    //min_dist = intersection.triangleIntersection.t;
+                    result.rayMeshIntersection = intersection.triangleIntersection;
+                    result.typeOfIntersectedObject = INTERSECTION_MESH;
+                    result.objectIndex = intersection.meshIndex;
+                    if (intersection.meshIndex>0)
+                        std::cout <<std::endl<< intersection.meshIndex <<  std::endl << std::endl ;
+                }
+        }
         return result;
     }
 
@@ -245,8 +270,29 @@ public:
                 ){
                 return true;
             }
-        }        
+        }
 
+        if (!useKdTree){
+            for (int i = 0; i<meshes.size(); ++i){
+
+                RayTriangleIntersection intersection = meshes[i].intersect(ray);
+
+                if (intersection.intersectionExists &&
+                intersection.t >= MIN_OFFSET_VALUE &&
+                intersection.t < dist_to_light
+                ){
+                    return true;
+                }
+            }
+        } else {
+            KDTree::KdIntersectionResult intersection = kdTree.getIntersection(ray);
+            if (intersection.triangleIntersection.intersectionExists &&
+                intersection.triangleIntersection.t >= MIN_OFFSET_VALUE &&
+                intersection.triangleIntersection.t < dist_to_light
+                ){
+                    return true;
+                }
+        }
         return false;
     }
     const int N_OCCLUSION_RAYS = 10;
@@ -286,12 +332,10 @@ public:
         //if collision
 
         Vec3 env_contrib(0, 0, 0);
-
-        Mesh mesh = getObject(
+        const Mesh &mesh = getObject(
             raySceneIntersection.typeOfIntersectedObject,
             raySceneIntersection.objectIndex
             );
-
         const Material& mat = getMaterial(mesh.material_id);
 
         std::vector<float> lights_contrib(lights.size(), 0.0);

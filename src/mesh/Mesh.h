@@ -165,7 +165,8 @@ public:
     void centerAndScaleToUnit ();
     void scaleUnit ();
 
-
+    virtual ~Mesh() = default;
+    
     virtual
     void build_arrays() {
         recomputeNormals();
@@ -289,7 +290,7 @@ public:
         closestIntersection.intersectionExists = false;
         closestIntersection.t = FLT_MAX;
 
-        //if (!intersection(ray)) return closestIntersection;
+        if (!intersection(ray)) return closestIntersection;
 
         // si dans AABB
 
@@ -300,11 +301,6 @@ public:
 
             if (res.intersectionExists && res.t < closestIntersection.t) closestIntersection = res;
         }
-        // Note :
-        // Creer un objet Triangle pour chaque face
-        // Vous constaterez des problemes de précision
-        // solution : ajouter un facteur d'échelle lors de la création du Triangle : float triangleScaling = 1.000001;
-
         
         return closestIntersection;
     }

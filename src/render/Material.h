@@ -126,7 +126,7 @@ class PhongMaterial: public Material{
             this->diffuse_color = diffuse_color;
             this->specular_color = specular_color;
             this->shininess = shininess;
-            casts_shadows = true;
+            casts_shadows = false; //FIXME
         }
 
         static std::shared_ptr< PhongMaterial > create(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color, float shininess) {
@@ -204,7 +204,6 @@ public:
 
         static std::shared_ptr< TexturedMaterial > create(const std::string & path_to_albedo) {
             auto t = std::make_shared< TexturedMaterial >(path_to_albedo);
-            std::cout << "TAILLE" << t->albedo_map->w << " " << t->albedo_map->h << std::endl; 
 
             return t;
         }
