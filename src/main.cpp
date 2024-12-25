@@ -129,7 +129,7 @@ void clear () {
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
-        10
+        100
     );
     //renderer << postprocess::utils::Normals::create();
     //renderer << postprocess::utils::Depth::create();
@@ -182,6 +182,8 @@ void idle () {
 
 void key (unsigned char keyPressed, int x, int y) {
     Vec3 pos , dir;
+
+    static bool last_action_is_scene_changed = true;
     switch (keyPressed) {
     case 'f':
         if (fullScreen == true) {
@@ -209,11 +211,20 @@ void key (unsigned char keyPressed, int x, int y) {
     case 'r':
         rays.clear();
         renderer.render(camera, scenes[selected_scene]);
+        last_action_is_scene_changed = false;
         break;
+    
     case '+':
-        selected_scene++;
-        if( selected_scene >= scenes.size() ) selected_scene = 0;
+        selected_scene = (selected_scene+1) % scenes.size();
+        scenes[selected_scene].print_scene_data(last_action_is_scene_changed);
+        last_action_is_scene_changed = true;
         break;
+
+    case '-':
+        selected_scene = (selected_scene + scenes.size() -1) % scenes.size();
+        scenes[selected_scene].print_scene_data(last_action_is_scene_changed);
+        last_action_is_scene_changed = true;
+        break;        
 
     case '8':
         camera.move(0.0, 0.0, 0.1); break;
@@ -305,9 +316,9 @@ int main (int argc, char ** argv) {
 
     setup_renderer();
 
-
     selected_scene=0;
     scenes = getScenes();
+    scenes[selected_scene].print_scene_data(false);
     
     glutMainLoop ();
     return EXIT_SUCCESS;

@@ -23,7 +23,7 @@
 
 class Renderer{
 
-    friend void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx, int & count);
+    friend void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx);
     friend void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scene);
     friend void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & scene);
 

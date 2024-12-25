@@ -25,7 +25,7 @@ KDTree::KDTree(const std::vector< Mesh >& meshes){
     }
 
     for (int i = 0; i < tris.size(); ++i){
-        root->tris.push_back(&tris[i]);
+        root->add_tri(&tris[i]);
     }
 
     std::vector < std::reference_wrapper<SpPointer> > to_process = {root};
@@ -79,7 +79,7 @@ KDTree::KDTree(const std::vector< Mesh >& meshes){
             to_process.push_back(current->second_side_child);
         }
     }
-    std::cout << "nodes  " << n_nodes << std::endl;
+    //std::cout << "nodes  " << n_nodes << std::endl;
 }
 
 KDTree::KdIntersectionResult KDTree::getIntersection(const Ray & r) const{
@@ -98,20 +98,23 @@ inline void KDTree::SplittingPlane::add_tri(KdTriangle* tri){
 bool KDTree::SplittingPlane::collideAABB(const Ray & r) const { // https://tavianator.com/2011/ray_box.html
 
     // TODO optimiser ces soustractions en boucle
-    float tx1 = (AABB_v1[0] - r.origin()[0]) / r.direction()[0];
-    float tx2 = (AABB_v2[0] - r.origin()[0]) / r.direction()[0];
+    Vec3 aa_to_r = AABB_v1 - r.origin();
+    Vec3 facs(1.0/r.direction()[0], 1.0 / r.direction()[1], 1.0 / r.direction()[2]);
+
+    float tx1 = (aa_to_r[0]) / facs[0];
+    float tx2 = (aa_to_r[0]) / facs[0];
 
     float tmin = std::min(tx1, tx2);
     float tmax = std::max(tx1, tx2);
 
-    float ty1 = (AABB_v1[1]- r.origin()[1]) / r.direction()[1];
-    float ty2 = (AABB_v2[1]- r.origin()[1]) / r.direction()[1];
+    float ty1 = (aa_to_r[1]) / facs[1];
+    float ty2 = (aa_to_r[1]) / facs[1];
 
     tmin = std::max(tmin, std::min(ty1, ty2));
     tmax = std::min(tmax, std::max(ty1, ty2));
 
-    float tz1 = (AABB_v1[2]- r.origin()[2]) / r.direction()[2];
-    float tz2 = (AABB_v2[2]- r.origin()[2]) / r.direction()[2];
+    float tz1 = (aa_to_r[2]) / facs[2];
+    float tz2 = (aa_to_r[2]) / facs[2];
 
     tmin = std::max(tmin, std::min(tz1, tz2));
     tmax = std::min(tmax, std::max(tz1, tz2));

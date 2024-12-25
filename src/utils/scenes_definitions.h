@@ -6,6 +6,7 @@
 static Scene sphere_and_plane() {
 
     Scene scene;
+    scene.name = "Setup test textures";
     //materials
 
     int sphereMat = scene.addMaterial(
@@ -60,7 +61,7 @@ static Scene sphere_and_plane() {
 static Scene mesh() {
 
         Scene scene;
-
+        scene.name = "Suzanne (sans kdtree)";
         //materials
 
         int mat = scene.addMaterial(
@@ -90,9 +91,45 @@ static Scene mesh() {
         return scene;
 }
 
+static Scene mesh_kd1() {
+
+        Scene scene;
+        scene.name = "Suzanne (avec kdtree)";
+        //materials
+
+        int mat = scene.addMaterial(
+            PhongMaterial::create(
+                Vec3( 0.0,0.0,0.0 ), Vec3( 0.8,0.8,0.8 ), Vec3( 0.2,0.2,0.2 ), 1.0
+            )
+        );
+
+        {
+            scene.lights.resize( scene.lights.size() + 1 );
+            Light & light = scene.lights[scene.lights.size() - 1];
+            light.pos = Vec3(-3,3,3);
+            light.radius = 2.5f;
+            light.powerCorrection = 8.f;
+            light.type = LightType_Spherical;
+            light.material = Vec3(1,1,1);
+            light.isInCamSpace = false;
+        }
+
+        //added
+        Mesh mesh;
+        mesh.loadOFF("./models/suzanne.off");
+        mesh.build_arrays();
+        mesh.material_id = mat;
+        scene.meshes.push_back(mesh); // copy but don't care
+
+        scene.generateKdTree();
+
+        return scene;
+}
+
 static Scene mesh_with_kdTree() {
 
         Scene scene;
+        scene.name = "Dagon!";
 
         //materials
 
@@ -157,7 +194,7 @@ static Scene mesh_with_kdTree() {
 static Scene cornell_box(){
         
     Scene scene;
-
+    scene.name = "Cornell";
     //materials
     int glassMat = scene.addMaterial(
         GlassMaterial::create(
@@ -294,7 +331,7 @@ static Scene cornell_box(){
 Scene cornell_box_textured(){
     
     Scene scene;
-
+    scene.name = "Cornell + textures";
     //materials
     int glassMat = scene.addMaterial(
         GlassMaterial::create(
@@ -450,6 +487,7 @@ std::vector<Scene> getScenes(){
      std::vector<Scene> res;
     res.push_back(sphere_and_plane());
     res.push_back(mesh());
+    res.push_back(mesh_kd1());
     res.push_back(mesh_with_kdTree());
     res.push_back(cornell_box());
     res.push_back(cornell_box_textured());

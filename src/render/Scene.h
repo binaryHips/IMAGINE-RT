@@ -11,9 +11,6 @@
 #include <GL/glut.h>
 
 
-
-
-
 struct RayResult {
     Vec3 color = Vec3(0, 0, 0);
     Vec3 normal = Vec3(0, 0, 0);
@@ -92,6 +89,7 @@ public:
     bool useKdTree = false;
     KDTree kdTree;
 
+    std::string name = "unnamed scene";
 
     int addMaterial(const std::shared_ptr < Material > m ){
         materials.push_back(m);
@@ -109,6 +107,31 @@ public:
             useKdTree = true;
             kdTree = KDTree(meshes);
         }
+    }
+
+    void print_scene_data(bool remove_old = true) const {
+
+        int tri_count = 0;
+        for (const Mesh & mesh:meshes) tri_count += mesh.triangles.size();
+
+        if (remove_old){
+
+            for (int i = 0; i < 8; ++i){
+                std::cout << "\r\033[Am\r                                                                                    " << std::flush;
+            }
+        }
+
+        printf( //Ansi escape codes (it's fucking ugly here but pretty as a print!) TODO maybe use a library for pretty printing idk
+"\n\n\033[36m### Scene \033[31m%s\033[36m ###\
+\n\t\033[4m|spheres | quads | meshes (triangles) | lights |\
+\n\t\033[4m|%7i |%6i |%7i %10i  |%7i |\033[0m\
+\n\t\033[36mMesh mode: \033[31m%s\n\
+\n\033[36m###--------%s###\033[0m\n",
+            name.c_str(),
+            spheres.size(), squares.size(), meshes.size(), tri_count, lights.size(),
+            useKdTree ? "Scene-wide KdTree" : "AABB",
+            std::string(name.size(), '-').c_str()
+            );
     }
 
     void draw() {

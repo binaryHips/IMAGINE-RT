@@ -26,7 +26,7 @@
 
 
 void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*= true*/){
-    std::cout << "\nRay tracing a " << w << " x " << h << " (x " << nsamples << " samples) image" << std::endl;
+    std::cout << "\n\033[36mRay tracing a \033[31m" << w << " x " << h << " (x " << nsamples << " samples) \033[36mimage" << std::endl;
     camera.apply();
 
 
@@ -37,17 +37,17 @@ void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
-    std::clog <<"\r\tDone in " << elapsed_seconds.count() << "s              " << std::flush << std::endl; //spaces to overwrite
+    std::clog <<"\r\tDone in \033[31m" << elapsed_seconds.count() << "s              " << std::flush << std::endl; //spaces to overwrite
 
     result_image = image;
 
     if (!postProcessPipeline.empty()){
-        std::cout << "Applying post-processing" << std::endl;
+        std::cout << "\033[36mApplying post-processing" << std::endl;
         start = std::chrono::system_clock::now();
         postProcess();
         end = std::chrono::system_clock::now();
         elapsed_seconds = end-start;
-        std::clog <<"\r\tDone in " << elapsed_seconds.count() << "s              " << std::flush << std::endl; //spaces to overwrite
+    std::clog <<"\r\tDone in \033[31m" << elapsed_seconds.count() << "s              " << std::flush << std::endl; //spaces to overwrite
     }
 
     if (export_after) export_to_file();
@@ -85,12 +85,13 @@ inline int idx_from_coord(int x, int y, int w){
 std::array< GLdouble, 16 > inv_model_view, inv_proj;
 std::array< GLdouble, 2 >  near_far_planes;
 
-inline void print_advancement(int finished_threads, int n_threads=-1){
-    static int total = std::max(n_threads, total);
-    std::clog << "\r\tBlocks remaining: " << total - finished_threads << " / " << total << ' ' << std::flush;
+int total_threads_n = 100;
+int count = 0;
+inline void print_advancement(){
+    std::cout << "\r\t\033[36mBlocks remaining: \033[31m" << total_threads_n - count << " / " << total_threads_n << "            \033[36m" << std::flush;
 }
 
-void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx, int & count){
+void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx){
 
 
     static thread_local std::mt19937 rng(std::random_device{}());
@@ -128,12 +129,12 @@ void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int p
     }
     std::scoped_lock<std::mutex> lock(mtx);
     ++count;
-    print_advancement(count);
+    print_advancement();
 }
 
 void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scene){
-    const unsigned int area_size = 60;
-    std::cout << "Number of cores:  " << std::thread::hardware_concurrency() << std::endl;
+    const unsigned int area_size = 30;
+    std::cout << "Number of cores:  \033[31m" << std::thread::hardware_concurrency() << "\033[36m"<< std::endl;
 
     getInvModelView(inv_model_view.data());
     getInvProj(inv_proj.data());
@@ -155,7 +156,10 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
     std::thread threads[n_threads];
 
     std::mutex threads_finished_count_mutex;
-    int nb_threads_finished = 0;
+
+    total_threads_n = n_threads;
+    count = 0;
+    print_advancement();
 
     // full squares
     for (int i = 0; i < n_square_x; i+=1){
@@ -166,7 +170,7 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
                 std::ref(renderer), std::cref(scene),
                 area_size * i, area_size * j, // pos of square (top left corner)
                 area_size, area_size, // size of square
-                std::ref(threads_finished_count_mutex), std::ref(nb_threads_finished)
+                std::ref(threads_finished_count_mutex)
             );
         }
     }
@@ -180,7 +184,7 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
             std::ref(renderer), std::cref(scene),
             area_size * i, area_size * j_last, // pos of square (top left corner)
             area_size, rest_y, // size of square
-            std::ref(threads_finished_count_mutex), std::ref(nb_threads_finished)
+            std::ref(threads_finished_count_mutex)
         );
 
     }
@@ -193,7 +197,7 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
             std::ref(renderer), std::cref(scene),
             area_size * i_last, area_size * j, // pos of square (top left corner)
             rest_x, area_size, // size of square
-            std::ref(threads_finished_count_mutex), std::ref(nb_threads_finished)
+            std::ref(threads_finished_count_mutex)
         );
     }
 
@@ -203,9 +207,9 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
         std::ref(renderer), std::cref(scene),
         area_size * i_last, area_size * j_last, // pos of square (top left corner)
         rest_x, rest_y, // size of square
-        std::ref(threads_finished_count_mutex), std::ref(nb_threads_finished)
+        std::ref(threads_finished_count_mutex)
     );
-    print_advancement(0, n_threads);
+    
     for (int t = 0; t < n_threads; ++t){
         threads[t].join();
     }
