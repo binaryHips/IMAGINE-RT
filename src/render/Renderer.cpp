@@ -26,7 +26,7 @@
 
 
 void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*= true*/){
-    std::cout << "Ray tracing a " << w << " x " << h << " (x " << nsamples << " samples) image" << std::endl;
+    std::cout << "\nRay tracing a " << w << " x " << h << " (x " << nsamples << " samples) image" << std::endl;
     camera.apply();
 
 

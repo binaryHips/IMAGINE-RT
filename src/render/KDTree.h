@@ -26,7 +26,7 @@ protected:
 
     using SpPointer = std::unique_ptr<SplittingPlane>;
 
-    static const int MAX_TRIANGLES_PER_LEAF = 1;
+    static const int MAX_TRIANGLES_PER_LEAF = 3; //optimum apparement
 public:
     struct KdIntersectionResult {RayTriangleIntersection triangleIntersection; int meshIndex;};
     

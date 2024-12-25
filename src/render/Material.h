@@ -126,7 +126,7 @@ class PhongMaterial: public Material{
             this->diffuse_color = diffuse_color;
             this->specular_color = specular_color;
             this->shininess = shininess;
-            casts_shadows = false; //FIXME
+            casts_shadows = true;
         }
 
         static std::shared_ptr< PhongMaterial > create(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color, float shininess) {

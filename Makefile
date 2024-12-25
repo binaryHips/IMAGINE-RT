@@ -28,7 +28,7 @@ CPP = g++
 
 # options du compilateur          
 CFLAGS = -Wall -O3 # -g pour gdb https://web.eecs.umich.edu/~sugih/pointers/summary.html
-CXXFLAGS = -Wall -g -O0
+CXXFLAGS = -Wall -O3
 # option du preprocesseur
 CPPFLAGS =  -I$(INCDIR) 
 

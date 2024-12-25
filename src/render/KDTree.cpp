@@ -3,7 +3,7 @@
 
 
 KDTree::KDTree(const std::vector< Mesh >& meshes){
-
+    int n_nodes = 0;
     // build the array
     Vec3 AABB_v1;
     Vec3 AABB_v2;
@@ -31,8 +31,7 @@ KDTree::KDTree(const std::vector< Mesh >& meshes){
     std::vector < std::reference_wrapper<SpPointer> > to_process = {root};
     while (! to_process.empty()){
         SpPointer & current = to_process.back(); to_process.pop_back();
-
-
+        n_nodes++;
 
         if (current->tris.size() <= MAX_TRIANGLES_PER_LEAF){
             current->is_leaf = true;
@@ -80,6 +79,7 @@ KDTree::KDTree(const std::vector< Mesh >& meshes){
             to_process.push_back(current->second_side_child);
         }
     }
+    std::cout << "nodes  " << n_nodes << std::endl;
 }
 
 KDTree::KdIntersectionResult KDTree::getIntersection(const Ray & r) const{
@@ -130,10 +130,11 @@ KDTree::KdIntersectionResult KDTree::SplittingPlane::getIntersection(const Ray &
         int meshIndex;
 
         result.t = FLT_MAX;
+        result.intersectionExists = false;
 
         for (const KdTriangle * tri: tris){
             candidate = tri->triangle.getIntersection(r);
-            if (candidate.intersectionExists && candidate.t <= result.t){
+            if (candidate.intersectionExists && candidate.t < result.t){
                 result = candidate;
                 meshIndex = tri->meshIndex;
             }

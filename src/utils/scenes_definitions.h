@@ -5,54 +5,55 @@
 
 static Scene sphere_and_plane() {
 
-        Scene scene;
-        //materials
+    Scene scene;
+    //materials
 
-        int sphereMat = scene.addMaterial(
-            PhongMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.05
-            )
-        );
+    int sphereMat = scene.addMaterial(
+        PhongMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.05
+        )
+    );
 
-        int planeMat = scene.addMaterial(
-            TexturedMaterial::create("img/uv.ppm")
-        );
+    int planeMat = scene.addMaterial(
+        TexturedMaterial::create("img/uv.ppm")
+    );
 
-        
-        {
-            scene.spheres.resize( scene.spheres.size() + 1 );
-            Sphere & s = scene.spheres[scene.spheres.size() - 1];
-            s.m_center = Vec3(0. , 0. , 0.);
-            s.m_radius = 1.f;
-            s.build_arrays();
-            s.material_id = sphereMat;
-        }
+    
+    {
+        scene.spheres.resize( scene.spheres.size() + 1 );
+        Sphere & s = scene.spheres[scene.spheres.size() - 1];
+        s.m_center = Vec3(0. , 0. , 0.);
+        s.m_radius = 1.f;
+        s.build_arrays();
+        s.material_id = sphereMat;
+    }
 
-        // added 
+    // added 
 
-        {
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -1.));
-            s.scale(Vec3(4., 4., 1.));
-            s.rotate_x(-90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMat;
-        }
-        // added 
+    {
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -1.));
+        s.scale(Vec3(4., 4., 1.));
+        s.rotate_x(-90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMat;
+    }
+    // added 
 
-        {
-            scene.lights.resize( scene.lights.size() + 1 );
-            Light & light = scene.lights[scene.lights.size() - 1];
-            light.pos = Vec3(0,4,0);
-            light.radius = 2.0f;
-            light.powerCorrection = 10.0f;
-            light.type = LightType_Spherical;
-            light.material = Vec3(1,1,1);
-            light.isInCamSpace = false;
-        }
+    {
+        scene.lights.resize( scene.lights.size() + 1 );
+        Light & light = scene.lights[scene.lights.size() - 1];
+        light.pos = Vec3(0,4,0);
+        light.radius = 2.0f;
+        light.powerCorrection = 10.0f;
+        light.type = LightType_Spherical;
+        light.material = Vec3(1,1,1);
+        light.isInCamSpace = false;
+    }
+    scene.generateKdTree();
     return scene;
 }
 
@@ -97,14 +98,18 @@ static Scene mesh_with_kdTree() {
 
         int mat = scene.addMaterial(
             PhongMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 0.8,0.4,0.5 ), Vec3( 0.2,0.2,0.2 ), 1.0
+                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.4,0.55 ), Vec3( 0.2,0.2,0.2 ), 5.0
             )
+        );
+
+        int planeMat = scene.addMaterial(
+            TexturedMaterial::create("img/textureHaven/pavement_06_2k/pavement_06_diff_2k.ppm")
         );
 
         {
             scene.lights.resize( scene.lights.size() + 1 );
             Light & light = scene.lights[scene.lights.size() - 1];
-            light.pos = Vec3(-3,3,3);
+            light.pos = Vec3(-3,3,-2);
             light.radius = 2.5f;
             light.powerCorrection = 8.f;
             light.type = LightType_Spherical;
@@ -112,12 +117,38 @@ static Scene mesh_with_kdTree() {
             light.isInCamSpace = false;
         }
 
+        {
+            scene.lights.resize( scene.lights.size() + 1 );
+            Light & light = scene.lights[scene.lights.size() - 1];
+            light.pos = Vec3(3,3,3);
+            light.radius = 3.5f;
+            light.powerCorrection = 9.f;
+            light.type = LightType_Spherical;
+            light.material = Vec3(1,1,1);
+            light.isInCamSpace = false;
+        }
+
+        {
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -1.1));
+        s.scale(Vec3(4., 4., 1.));
+        s.rotate_x(-90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMat;
+        }
+
         //added
         Mesh mesh;
-        mesh.loadOFF("./models/suzanne.off");
+        mesh.loadOFF("./models/xyzrgb_dragon_100k.off");
+        mesh.scale(Vec3(0.03));
         mesh.build_arrays();
         mesh.material_id = mat;
         scene.meshes.push_back(mesh); // copy but don't care
+
+
 
         scene.generateKdTree();
         return scene;
@@ -125,284 +156,284 @@ static Scene mesh_with_kdTree() {
 
 static Scene cornell_box(){
         
-        Scene scene;
+    Scene scene;
 
-        //materials
-        int glassMat = scene.addMaterial(
-            GlassMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
-            )
-        );
+    //materials
+    int glassMat = scene.addMaterial(
+        GlassMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
+        )
+    );
 
-        int mirrorMat = scene.addMaterial(
-            MirrorMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.3,0.9 ), Vec3( 0.2,0.2,0.2 )
-            )
-        );
+    int mirrorMat = scene.addMaterial(
+        MirrorMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.3,0.9 ), Vec3( 0.2,0.2,0.2 )
+        )
+    );
 
-        int planeMatRed = scene.addMaterial(
-            PhongMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.2
-            )
-        );
+    int planeMatRed = scene.addMaterial(
+        PhongMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.2
+        )
+    );
 
-        int planeMatWhite = scene.addMaterial(
-            PhongMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,1.0,1.0 ), Vec3( 0.2,0.2,0.2 ), 0.5
-            )
-        );
+    int planeMatWhite = scene.addMaterial(
+        PhongMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,1.0,1.0 ), Vec3( 0.2,0.2,0.2 ), 0.5
+        )
+    );
 
-        int planeMatGreen = scene.addMaterial(
-            PhongMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,1.0,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.2
-            )
-        );
+    int planeMatGreen = scene.addMaterial(
+        PhongMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,1.0,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.2
+        )
+    );
 
-        int planeMatPurple = scene.addMaterial(
-            PhongMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.8 ), Vec3( 0.2,0.2,0.2 ), 0.1
-            )
-        );
+    int planeMatPurple = scene.addMaterial(
+        PhongMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.8 ), Vec3( 0.2,0.2,0.2 ), 0.1
+        )
+    );
 
 
 
-        {
-            scene.lights.resize( scene.lights.size() + 1 );
-            Light & light = scene.lights[scene.lights.size() - 1];
-            light.pos = Vec3( 0.0, 1.0, 0.0 );
-            light.radius = 0.5f;
-            light.powerCorrection = 5.f;
-            light.type = LightType_Spherical;
-            light.material = Vec3(1,1,1);
-            light.isInCamSpace = false;
-        }
-        
-        { //Back Wall
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.scale(Vec3(2., 2., 1.));
-            s.translate(Vec3(0., 0., -2.));
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatWhite;
-        }
+    {
+        scene.lights.resize( scene.lights.size() + 1 );
+        Light & light = scene.lights[scene.lights.size() - 1];
+        light.pos = Vec3( 0.0, 1.0, 0.0 );
+        light.radius = 0.5f;
+        light.powerCorrection = 5.f;
+        light.type = LightType_Spherical;
+        light.material = Vec3(1,1,1);
+        light.isInCamSpace = false;
+    }
+    
+    { //Back Wall
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.scale(Vec3(2., 2., 1.));
+        s.translate(Vec3(0., 0., -2.));
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatWhite;
+    }
 
-        { //Left Wall
+    { //Left Wall
 
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.scale(Vec3(2., 2., 1.));
-            s.translate(Vec3(0., 0., -2.));
-            s.rotate_y(90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatRed;
-        }
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.scale(Vec3(2., 2., 1.));
+        s.translate(Vec3(0., 0., -2.));
+        s.rotate_y(90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatRed;
+    }
 
-        { //Right Wall
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -2.));
-            s.scale(Vec3(2., 2., 1.));
-            s.rotate_y(-90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatGreen;
-        }
+    { //Right Wall
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -2.));
+        s.scale(Vec3(2., 2., 1.));
+        s.rotate_y(-90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatGreen;
+    }
 
-        { //Floor
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -2.));
-            s.scale(Vec3(2., 2., 1.));
-            s.rotate_x(-90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatWhite;
-        }
+    { //Floor
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -2.));
+        s.scale(Vec3(2., 2., 1.));
+        s.rotate_x(-90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatWhite;
+    }
 
-        { //Ceiling
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -2.));
-            s.scale(Vec3(2., 2., 1.));
-            s.rotate_x(90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatPurple;
-        }
-        
-        { //Front Wall
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -2.));
-            s.scale(Vec3(2., 2., 1.));
-            s.rotate_y(180);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatWhite;
-        }
+    { //Ceiling
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -2.));
+        s.scale(Vec3(2., 2., 1.));
+        s.rotate_x(90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatPurple;
+    }
+    
+    { //Front Wall
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -2.));
+        s.scale(Vec3(2., 2., 1.));
+        s.rotate_y(180);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatWhite;
+    }
 
-        //added
-        Mesh mesh;
-        mesh.loadOFF("./models/suzanne.off");
-        mesh.build_arrays();
-        mesh.material_id = mirrorMat;
-        scene.meshes.push_back(mesh); // copy but don't care
-        
-
-        return scene;
+    //added
+    Mesh mesh;
+    mesh.loadOFF("./models/suzanne.off");
+    mesh.build_arrays();
+    mesh.material_id = mirrorMat;
+    scene.meshes.push_back(mesh); // copy but don't care
+    
+    scene.generateKdTree();
+    return scene;
 }
 
-    Scene cornell_box_textured(){
-        
-        Scene scene;
+Scene cornell_box_textured(){
+    
+    Scene scene;
 
-        //materials
-        int glassMat = scene.addMaterial(
-            GlassMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
-            )
-        );
+    //materials
+    int glassMat = scene.addMaterial(
+        GlassMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
+        )
+    );
 
-        int simpleMat = scene.addMaterial(
-            PhongMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 0.4,0.7,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
-            )
-        );
+    int simpleMat = scene.addMaterial(
+        PhongMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.4,0.7,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
+        )
+    );
 
-        int mirrorMat = scene.addMaterial(
-            MirrorMaterial::create(
-                Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.3,0.9 ), Vec3( 0.2,0.2,0.2 )
-            )
-        );
+    int mirrorMat = scene.addMaterial(
+        MirrorMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.3,0.9 ), Vec3( 0.2,0.2,0.2 )
+        )
+    );
 
-        int planeMatWalls = scene.addMaterial(
-            TexturedMaterial::create(
-                "img/textureHaven/pavement_06_2k/pavement_06_diff_2k.ppm"
-            )
-        );
-
-
-        int planeMatGround = scene.addMaterial(
-            TexturedMaterial::create(
-                "img/textureHaven/wood_floor_deck_2k/wood_floor_deck_diff_2k.ppm"
-            )
-        );
+    int planeMatWalls = scene.addMaterial(
+        TexturedMaterial::create(
+            "img/textureHaven/pavement_06_2k/pavement_06_diff_2k.ppm"
+        )
+    );
 
 
+    int planeMatGround = scene.addMaterial(
+        TexturedMaterial::create(
+            "img/textureHaven/wood_floor_deck_2k/wood_floor_deck_diff_2k.ppm"
+        )
+    );
 
 
-        {
-            scene.lights.resize( scene.lights.size() + 1 );
-            Light & light = scene.lights[scene.lights.size() - 1];
-            light.pos = Vec3( 0.0, 1.0, 0.0 );
-            light.radius = 0.5f;
-            light.powerCorrection = 3.f;
-            light.type = LightType_Spherical;
-            light.material = Vec3(1,1,1);
-            light.isInCamSpace = false;
-        }
-        
-        { //Back Wall
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.scale(Vec3(2., 2., 1.));
-            s.translate(Vec3(0., 0., -2.));
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatWalls;
-        }
 
-        { //Left Wall
 
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.scale(Vec3(2., 2., 1.));
-            s.translate(Vec3(0., 0., -2.));
-            s.rotate_y(90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatWalls;
-        }
+    {
+        scene.lights.resize( scene.lights.size() + 1 );
+        Light & light = scene.lights[scene.lights.size() - 1];
+        light.pos = Vec3( 0.0, 1.0, 0.0 );
+        light.radius = 0.5f;
+        light.powerCorrection = 3.f;
+        light.type = LightType_Spherical;
+        light.material = Vec3(1,1,1);
+        light.isInCamSpace = false;
+    }
+    
+    { //Back Wall
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.scale(Vec3(2., 2., 1.));
+        s.translate(Vec3(0., 0., -2.));
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatWalls;
+    }
 
-        { //Right Wall
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -2.));
-            s.scale(Vec3(2., 2., 1.));
-            s.rotate_y(-90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatWalls;
-        }
+    { //Left Wall
 
-        { //Floor
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -2.));
-            s.scale(Vec3(2., 2., 1.));
-            s.rotate_x(-90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatGround;
-        }
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.scale(Vec3(2., 2., 1.));
+        s.translate(Vec3(0., 0., -2.));
+        s.rotate_y(90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatWalls;
+    }
 
-        { //Ceiling
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -2.));
-            s.scale(Vec3(2., 2., 1.));
-            s.rotate_x(90);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatGround;
-        }
-        
-        { //Front Wall
-            scene.squares.resize( scene.squares.size() + 1 );
-            Square & s = scene.squares[scene.squares.size() - 1];
-            s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
-            s.translate(Vec3(0., 0., -2.));
-            s.scale(Vec3(2., 2., 1.));
-            s.rotate_y(180);
-            s.build_arrays();
-            s.recomputeVectors();
-            s.material_id = planeMatWalls;
-        };
+    { //Right Wall
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -2.));
+        s.scale(Vec3(2., 2., 1.));
+        s.rotate_y(-90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatWalls;
+    }
 
-        //added
-        /*
-        Mesh mesh;
-        mesh.loadOFF("./models/suzanne.off");
-        mesh.translate(Vec3(0, 0, -1.4));
-        mesh.build_arrays();
-        mesh.material_id = simpleMat;
-        scene.meshes.push_back(mesh); // copy but don't care
-        */
+    { //Floor
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -2.));
+        s.scale(Vec3(2., 2., 1.));
+        s.rotate_x(-90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatGround;
+    }
 
-        {
-            scene.spheres.resize( scene.spheres.size() + 1 );
-            Sphere & s = scene.spheres[scene.spheres.size() - 1];
-            s.m_center = Vec3(0. , 0. , -1.4);
-            s.m_radius = 1.f;
-            s.build_arrays();
-            s.material_id = simpleMat;
-        }
-        
+    { //Ceiling
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -2.));
+        s.scale(Vec3(2., 2., 1.));
+        s.rotate_x(90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatGround;
+    }
+    
+    { //Front Wall
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -2.));
+        s.scale(Vec3(2., 2., 1.));
+        s.rotate_y(180);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = planeMatWalls;
+    };
 
-        return scene;
+    //added
+    /*
+    Mesh mesh;
+    mesh.loadOFF("./models/suzanne.off");
+    mesh.translate(Vec3(0, 0, -1.4));
+    mesh.build_arrays();
+    mesh.material_id = simpleMat;
+    scene.meshes.push_back(mesh); // copy but don't care
+    */
+
+    {
+        scene.spheres.resize( scene.spheres.size() + 1 );
+        Sphere & s = scene.spheres[scene.spheres.size() - 1];
+        s.m_center = Vec3(0. , 0. , -1.4);
+        s.m_radius = 1.f;
+        s.build_arrays();
+        s.material_id = simpleMat;
+    }
+    
+    scene.generateKdTree();
+    return scene;
 }
 
 std::vector<Scene> getScenes(){
