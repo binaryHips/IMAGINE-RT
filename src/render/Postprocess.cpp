@@ -46,20 +46,17 @@ void PostProcessEffect::apply(Renderer & renderer){
 
 inline int PostProcessEffect::idx_from_coord(int u, int v) const{
 
-    //mirror repeat
 
-    u = u % (w * 2);
-    v = v % (h * 2);
+    u = u % (w * 2 );
+    v = v % (h * 2 );
 
     if (u<0) u += w;
     if (v<0) v += h;
 
-    if (u >= w-1) u = 2*w - u;
-    if (v >= h-1) v = 2*h - v;
-
+    if (u >= w) u = 2*w - u;
+    if (v >= h) v = 2*h - v;
     return u + v * w;
 }
-
 inline Vec3 PostProcessEffect::sampleBuffer(const std::vector< Color > & buffer, int x, int y) const {
     auto v = buffer[idx_from_coord(x, y)];
 
@@ -148,4 +145,41 @@ void postprocess::utils::Depth::FRAGMENT{
 void postprocess::utils::Normals::FRAGMENT{
 
     OUT = sampleBuffer(NORMAL, u, v);
+}
+
+
+void postprocess::denoise::Similarity::FRAGMENT{
+
+    const int size = 3;
+    const float norm_thresh = 0.9f;
+    const float color_thresh = 0.2f;
+    const float depth_thresh = 0.1f;
+
+    OUT = sampleBuffer(IMAGE, u, v);
+
+
+    Vec3 mean_color_around  = OUT;
+    Vec3 n = sampleBuffer(NORMAL, u, v);
+    float d = sampleBuffer(DEPTH, u, v);
+    float dist_to_mean_luminance = 0;
+
+    int count = 1;
+
+    for (int i = -size; i <= size; ++i) for (int j = -size; j <= size; ++j){
+        auto col = sampleBuffer(IMAGE, u+i, v+j);
+        if (
+            abs(sampleBuffer(DEPTH, u+i, v+j) -d) <= depth_thresh&&
+            Vec3::dot(sampleBuffer(NORMAL, u+i, v+j), n) >= norm_thresh &&
+            (col.normalized()-OUT.normalized()).squareNorm() <= std::pow(color_thresh,2.0)
+        ){
+            mean_color_around += col;
+            dist_to_mean_luminance += col.luminance();
+            ++count;
+        }
+    }
+    mean_color_around /= (float)count;
+    dist_to_mean_luminance = OUT.luminance() - (dist_to_mean_luminance / count);
+
+    OUT = OUT * (1.0f - fac) + mean_color_around * fac;
+    
 }

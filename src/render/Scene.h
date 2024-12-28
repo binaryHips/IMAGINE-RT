@@ -172,7 +172,6 @@ public:
         RaySceneIntersection result;
         result.intersectionExists = false;
 
-        const float min_offset = 1e-5;
 
         float min_dist = std::numeric_limits<float>::infinity();
 
@@ -294,7 +293,6 @@ public:
                 return true;
             }
         }
-
         if (!useKdTree){
             for (int i = 0; i<meshes.size(); ++i){
 

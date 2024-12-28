@@ -98,42 +98,41 @@ inline void KDTree::SplittingPlane::add_tri(KdTriangle* tri){
 bool KDTree::SplittingPlane::collideAABB(const Ray & r) const { // https://tavianator.com/2011/ray_box.html
 
     // TODO optimiser ces soustractions en boucle
-    Vec3 aa_to_r = AABB_v1 - r.origin();
+    Vec3 aa1_to_r = AABB_v1 - r.origin();
+    Vec3 aa2_to_r = AABB_v2 - r.origin();
     Vec3 facs(1.0/r.direction()[0], 1.0 / r.direction()[1], 1.0 / r.direction()[2]);
 
-    float tx1 = (aa_to_r[0]) / facs[0];
-    float tx2 = (aa_to_r[0]) / facs[0];
+    float tx1 = (aa1_to_r[0]) * facs[0];
+    float tx2 = (aa2_to_r[0]) * facs[0];
 
     float tmin = std::min(tx1, tx2);
     float tmax = std::max(tx1, tx2);
 
-    float ty1 = (aa_to_r[1]) / facs[1];
-    float ty2 = (aa_to_r[1]) / facs[1];
+    float ty1 = (aa1_to_r[1]) * facs[1];
+    float ty2 = (aa2_to_r[1]) * facs[1];
 
     tmin = std::max(tmin, std::min(ty1, ty2));
     tmax = std::min(tmax, std::max(ty1, ty2));
 
-    float tz1 = (aa_to_r[2]) / facs[2];
-    float tz2 = (aa_to_r[2]) / facs[2];
+    float tz1 = (aa1_to_r[2]) * facs[2];
+    float tz2 = (aa2_to_r[2]) * facs[2];
 
     tmin = std::max(tmin, std::min(tz1, tz2));
     tmax = std::min(tmax, std::max(tz1, tz2));
 
     return tmax >= tmin;
+    return tmax >= tmin;
 }
 
+const KDTree::KdIntersectionResult final_result;
+
 KDTree::KdIntersectionResult KDTree::SplittingPlane::getIntersection(const Ray & r) const {
-    KdIntersectionResult final_result;
-    final_result.triangleIntersection.intersectionExists = false;
     if (!collideAABB(r)) return final_result;
 
     if (is_leaf){
         RayTriangleIntersection result;
         RayTriangleIntersection candidate;
         int meshIndex;
-
-        result.t = FLT_MAX;
-        result.intersectionExists = false;
 
         for (const KdTriangle * tri: tris){
             candidate = tri->triangle.getIntersection(r);

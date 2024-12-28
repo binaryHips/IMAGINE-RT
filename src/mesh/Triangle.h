@@ -1,16 +1,17 @@
-#ifndef TRIANGLE_H
-#define TRIANGLE_H
+#pragma once
 #include "src/utils/Vec3.h"
 #include "src/utils/Ray.h"
 #include "Plane.h"
 #include <cfloat>
 struct RayTriangleIntersection{
-    bool intersectionExists;
-    float t;
+    bool intersectionExists = false;
+    float t = FLT_MAX;
     Vec2 uv;
-    unsigned int tIndex;
+    unsigned int tIndex = 0;
     Vec3 intersection;
     Vec3 normal;
+
+    RayTriangleIntersection() = default;
 };
 
 class Triangle {
@@ -86,4 +87,3 @@ public:
         return result;
     }
 };
-#endif

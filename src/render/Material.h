@@ -150,10 +150,7 @@ class PhongMaterial: public Material{
 
                 Vec3 lightDir = (light.pos - l.position).normalized();
                 float diff = std::max(Vec3::dot(l.normal, lightDir), 0.0f);
-                Vec3 diffuse;
-                diffuse[0] = light.material[0] * (diff * diffuse_color[0]);
-                diffuse[1] = light.material[1] * (diff * diffuse_color[1]);
-                diffuse[2] = light.material[2] * (diff * diffuse_color[2]);
+                Vec3 diffuse = Vec3::compProduct(light.material, diff * diffuse_color);
 
                 // Specular
 
@@ -161,10 +158,8 @@ class PhongMaterial: public Material{
                 float spec = std::pow(std::max(Vec3::dot(l.view, reflectDir), 0.0f), shininess);
                 Vec3 specular = (spec * specular_color);
 
-                result +=  (diffuse + specular) * l.lights_contrib[i];
+                result += (diffuse + specular) * l.lights_contrib[i];
             }
-            
-
             return result;
         }
 };
@@ -288,7 +283,10 @@ public:
     }
 
     inline bool scatter(Vec3 incident, Vec3 normal, Vec3 & res) const override {
-        res = incident.refract(normal, 1.0003, index_medium);
+
+        res = (Vec3::dot(incident, normal) < 0) ?
+            incident.refract(normal, 1.0003f, index_medium) :
+            incident.refract(normal, index_medium, 1.0003f) ;
         return true;
     }
 

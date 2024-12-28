@@ -44,7 +44,7 @@ public:
             
             case RepeatMode::MIRROR:
 
-                u = u % (w * 2 ); // do we need the -1?
+                u = u % (w * 2 );
                 v = v % (h * 2 );
 
                 if (u<0) u += w;

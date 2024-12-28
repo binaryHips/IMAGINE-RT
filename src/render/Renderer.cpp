@@ -32,8 +32,8 @@ void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*
 
     auto start = std::chrono::system_clock::now();
 
-    //ray_trace_from_camera_singlethreaded(*this, scene);
-    ray_trace_from_camera_multithreaded(*this, scene);
+    ray_trace_from_camera_singlethreaded(*this, scene);
+    //ray_trace_from_camera_multithreaded(*this, scene);
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
@@ -85,7 +85,7 @@ inline int idx_from_coord(int x, int y, int w){
 std::array< GLdouble, 16 > inv_model_view, inv_proj;
 std::array< GLdouble, 2 >  near_far_planes;
 
-int total_threads_n = 100;
+int total_threads_n;
 int count = 0;
 inline void print_advancement(){
     std::cout << "\r\t\033[36mBlocks remaining: \033[31m" << total_threads_n - count << " / " << total_threads_n << "            \033[36m" << std::flush;
@@ -95,8 +95,6 @@ void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int p
 
 
     static thread_local std::mt19937 rng(std::random_device{}());
-
-
 
     Vec3 pos = cameraSpaceToWorldSpace(inv_model_view.data(), Vec3(0,0,0) );
     Vec3 dir;

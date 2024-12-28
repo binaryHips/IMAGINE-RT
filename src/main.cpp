@@ -129,9 +129,9 @@ void clear () {
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
-        100
+        1
     );
-    //renderer << postprocess::utils::Normals::create();
+    renderer << postprocess::denoise::Similarity::create(1.0);
     //renderer << postprocess::utils::Depth::create();
     
 

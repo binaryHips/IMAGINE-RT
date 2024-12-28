@@ -169,5 +169,23 @@ namespace postprocess::utils{
             void FRAGMENT;
         };
 
+}
+
+
+namespace postprocess::denoise{
+
+    class Similarity: public PostProcessEffect{
+
+        float fac;
+        public:
+            Similarity() = default;
+            explicit Similarity(float fac): fac(fac) {}
+
+            static PostProcessEffect* create(float fac) {
+                return new Similarity(fac);
+            }
+            
+            void FRAGMENT;
+        };
 
 }

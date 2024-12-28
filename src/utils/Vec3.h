@@ -5,7 +5,7 @@
 #include <iostream>
 #include <array>
 
-const float MIN_OFFSET_VALUE = 1e-6;
+const float MIN_OFFSET_VALUE = 1e-5f;
 
 
 class Vec3;
@@ -96,8 +96,9 @@ public:
     inline Vec3 reflect(const Vec3 &N) const{
         return (*this - (2.0*(Vec3::dot(*this, N)) * N));
     }
+
     // https://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
-    Vec3 refract(const Vec3 &N, const float &n1, const float &n2) const{
+    Vec3 refract(const Vec3 &N, float n1, float n2) const{
         const float n = n1 / n2;
         const float cosI = -Vec3::dot(N, *this);
         const float sinT2 = n * n * (1.0 - cosI * cosI);
@@ -108,6 +109,10 @@ public:
 
     inline Vec3 operator - (){
         return Vec3(-mVals[0], -mVals[1], -mVals[2]);
+    }
+
+    float luminance() const {
+        return 0.299*mVals[0] + 0.587*mVals[1] + 0.114*mVals[2];
     }
 };
 

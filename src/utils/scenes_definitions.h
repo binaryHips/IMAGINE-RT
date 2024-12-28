@@ -317,14 +317,25 @@ static Scene cornell_box(){
         s.material_id = planeMatWhite;
     }
 
-    //added
-    Mesh mesh;
-    mesh.loadOFF("./models/suzanne.off");
-    mesh.build_arrays();
-    mesh.material_id = mirrorMat;
-    scene.meshes.push_back(mesh); // copy but don't care
-    
-    scene.generateKdTree();
+    { //GLASS Sphere
+        scene.spheres.resize( scene.spheres.size() + 1 );
+        Sphere & s = scene.spheres[scene.spheres.size() - 1];
+        s.m_center = Vec3(1.0, -1.25, 0.5);
+        s.m_radius = 0.75f;
+        s.build_arrays();
+        s.material_id = glassMat;
+    }
+
+    { //MIRRORED Sphere
+        scene.spheres.resize( scene.spheres.size() + 1 );
+        Sphere & s = scene.spheres[scene.spheres.size() - 1];
+        s.m_center = Vec3(-1.0, -1.25, -0.5);
+        s.m_radius = 0.75f;
+        s.build_arrays();
+        s.material_id = mirrorMat;
+    }
+
+
     return scene;
 }
 
