@@ -32,8 +32,8 @@ void Renderer::render(Camera & camera, const Scene & scene, bool export_after /*
 
     auto start = std::chrono::system_clock::now();
 
-    ray_trace_from_camera_singlethreaded(*this, scene);
-    //ray_trace_from_camera_multithreaded(*this, scene);
+    //ray_trace_from_camera_singlethreaded(*this, scene);
+    ray_trace_from_camera_multithreaded(*this, scene);
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
