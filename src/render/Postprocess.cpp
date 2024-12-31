@@ -15,15 +15,116 @@
 #include "Postprocess.h"
 #include "Renderer.h"
 
+static int total_threads_n;
+static int count = 0;
+static inline void print_advancement(){
+    std::cout << "\r\t\033[36mBlocks remaining: \033[31m" << total_threads_n - count << " / " << total_threads_n << "            \033[36m" << std::flush;
+}
 
-void PostProcessEffect::apply(Renderer & renderer){
-    w = renderer.w;
-    h = renderer.h;
+inline int thread_idx_from_coord(int x, int y, int w){
+    return (x + y * w);
+}
 
+void postProcessSquare(Renderer & renderer, PostProcessEffect & posteffect, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx){
+
+
+    for (int u=pos_y; u<pos_y+sizeY; u++){
+        for (int v = pos_x; v<pos_x+sizeX; v++) {
+            Vec3 out(0, 0, 0);
+            posteffect.fragment(
+                u, v, out,
+                renderer.result_image,
+                renderer.image,
+                renderer.screen_space_normals,
+                renderer.screen_space_depth
+            );
+            renderer.workspace[u + v * posteffect.w] = Color(out);
+        }
+    }
+    std::scoped_lock<std::mutex> lock(mtx);
+    ++count;
+    if (!renderer.silent) print_advancement();
+}
+
+void PostProcessEffect::postProcessMultithreaded(Renderer & renderer){
+    const unsigned int area_size = 40;
+    if (!renderer.silent) std::cout << "Number of cores:  \033[31m" << std::thread::hardware_concurrency() << "\033[36m"<< std::endl;
+
+    int n_square_x = renderer.h / area_size;
+    int rest_x = renderer.w % area_size;
+
+    int n_square_y = renderer.h / area_size;
+    int rest_y = renderer.h % area_size;
+
+    int n_threads = (n_square_x+1) * (n_square_y+1);
+
+    std::thread threads[n_threads];
+
+    std::mutex threads_finished_count_mutex;
+
+    total_threads_n = n_threads;
+    count = 0;
+    if (!renderer.silent) print_advancement();
+
+    // full squares
+    for (int i = 0; i < n_square_x; i+=1){
+        for (int j = 0; j < n_square_y; j+=1){
+            
+            threads[thread_idx_from_coord(i, j, n_square_x+1)] = std::thread(
+                postProcessSquare,
+                std::ref(renderer), std::ref(*this),
+                area_size * i, area_size * j, // pos of square (top left corner)
+                area_size, area_size, // size of square
+                std::ref(threads_finished_count_mutex)
+            );
+        }
+    }
     
+    // bottom rest
+    int j_last = (n_square_y);
+    for (int i = 0; i < n_square_x; i+=1){
+
+        threads[thread_idx_from_coord(i, j_last, n_square_x+1)] = std::thread(
+            postProcessSquare,
+            std::ref(renderer), std::ref(*this),
+            area_size * i, area_size * j_last, // pos of square (top left corner)
+            area_size, rest_y, // size of square
+            std::ref(threads_finished_count_mutex)
+        );
+
+    }
+    // right rest
+    int i_last = (n_square_x);
+    for (int j = 0; j < n_square_y; j+=1){
+
+        threads[thread_idx_from_coord(i_last, j, n_square_x+1)] = std::thread(
+            postProcessSquare,
+            std::ref(renderer), std::ref(*this),
+            area_size * i_last, area_size * j, // pos of square (top left corner)
+            rest_x, area_size, // size of square
+            std::ref(threads_finished_count_mutex)
+        );
+    }
+
+    // very last, bottom right square
+    threads[thread_idx_from_coord(i_last, j_last, n_square_x+1)] = std::thread(
+        postProcessSquare,
+        std::ref(renderer), std::ref(*this),
+        area_size * i_last, area_size * j_last, // pos of square (top left corner)
+        rest_x, rest_y, // size of square
+        std::ref(threads_finished_count_mutex)
+    );
+    
+    for (int t = 0; t < n_threads; ++t){
+        threads[t].join();
+    }
+}
+
+
+void PostProcessEffect::postProcessSinglethreaded(Renderer& renderer){
     for (int v = 0; v < h; ++v){
 
-        std::clog << "\r\tScanlines remaining: " << (renderer.h-v) << ' ' << std::flush;
+        if (!renderer.silent) std::clog << "\r\tScanlines remaining: " << (renderer.h-v) << ' ' << std::flush;
 
         Vec3 out(0, 0, 0);
         for (int u = 0; u < w; ++u){
@@ -36,9 +137,16 @@ void PostProcessEffect::apply(Renderer & renderer){
             );
             renderer.workspace[u + v * w] = Color(out);
         }
-        
     }
+}
+
+void PostProcessEffect::apply(Renderer & renderer){
+    w = renderer.w;
+    h = renderer.h;
+
     
+    //postProcessSinglethreaded(renderer);
+    postProcessMultithreaded(renderer);
 
 }
 
@@ -150,10 +258,10 @@ void postprocess::utils::Normals::FRAGMENT{
 
 void postprocess::denoise::Similarity::FRAGMENT{
 
-    const int size = 3;
-    const float norm_thresh = 0.9f;
-    const float color_thresh = 0.2f;
-    const float depth_thresh = 0.1f;
+    static const int size = 2;
+    static const float norm_thresh = 0.8f;
+    static const float color_thresh = 0.3f;
+    static const float depth_thresh = 0.2f;
 
     OUT = sampleBuffer(IMAGE, u, v);
 
@@ -167,10 +275,12 @@ void postprocess::denoise::Similarity::FRAGMENT{
 
     for (int i = -size; i <= size; ++i) for (int j = -size; j <= size; ++j){
         auto col = sampleBuffer(IMAGE, u+i, v+j);
+        auto col_diff = col - OUT;
         if (
             abs(sampleBuffer(DEPTH, u+i, v+j) -d) <= depth_thresh&&
-            Vec3::dot(sampleBuffer(NORMAL, u+i, v+j), n) >= norm_thresh &&
-            (col.normalized()-OUT.normalized()).squareNorm() <= std::pow(color_thresh,2.0)
+            //abs(Vec3::dot(sampleBuffer(NORMAL, u+i, v+j), n)) >= norm_thresh &&
+            Vec3::dot(col_diff, col_diff)<= std::pow(color_thresh,2.0) ||
+            (abs(i) + abs(j) < 2) // AA
         ){
             mean_color_around += col;
             dist_to_mean_luminance += col.luminance();

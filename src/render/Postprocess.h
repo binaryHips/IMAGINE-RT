@@ -17,7 +17,8 @@
 class Renderer;
 
 class PostProcessEffect{
-
+    void postProcessMultithreaded(Renderer & renderer);
+    void postProcessSinglethreaded(Renderer & renderer);
 public:
     int repeat_mode = 0; // 0 is mirror repeat?
     int w = 0;

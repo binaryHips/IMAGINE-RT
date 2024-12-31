@@ -58,13 +58,14 @@ static bool mouseZoomPressed = false;
 static int lastX=0, lastY=0, lastZoom=0;
 static unsigned int FPS = 0;
 static bool fullScreen = false;
+static bool realtime = false;
 
 std::vector<Scene> scenes;
 unsigned int selected_scene;
 
 std::vector< std::pair< Vec3 , Vec3 > > rays;
 
-Renderer renderer;
+Renderer renderer, realtime_renderer;
 
 void printUsage () {
     cerr << endl
@@ -125,16 +126,61 @@ void clear () {
 }
 
 
-
+unsigned int realtime_texture;
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
         100
     );
-    //renderer << postprocess::denoise::Similarity::create(1.0);
     //renderer << postprocess::utils::Depth::create();
-    
+    realtime_renderer = Renderer(
+        360, 360,
+        1
+    );
+    realtime_renderer.silent = true;
+    realtime_renderer << postprocess::denoise::Similarity::create(1.0);
 
+    // for realtime
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &realtime_texture);  
+    glBindTexture(GL_TEXTURE_2D, realtime_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+void drawRealtimeRT(){ // https://stackoverflow.com/questions/31482816/opengl-is-there-an-easier-way-to-fill-window-with-a-texture-instead-using-vbo
+    
+    realtime_renderer.render(camera, scenes[selected_scene]);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, realtime_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, realtime_renderer.w, realtime_renderer.h, 0, GL_RGB, GL_UNSIGNED_BYTE, (void*)realtime_renderer.getImage().data());
+    
+    //matrix fuckery needed to shoo all the current scene and camera transforms
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    glDisable(GL_LIGHTING);
+
+    glLoadIdentity();
+    glOrtho(0.0, SCREENWIDTH, 0.0, SCREENHEIGHT, -1.0, 1.0);
+    glColor3f(1.0, 1.0, 1.0);
+    glBindTexture(GL_TEXTURE_2D, realtime_texture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0,1); glVertex2f(0,0);
+    glTexCoord2f(1,1); glVertex2f(SCREENWIDTH,0);
+    glTexCoord2f(1,0); glVertex2f(SCREENWIDTH, SCREENHEIGHT);
+    glTexCoord2f(0,0); glVertex2f(0,SCREENHEIGHT);
+    glEnd();
+
+
+
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 }
 
 void draw () {
@@ -144,7 +190,7 @@ void draw () {
     // draw rays : (for debug)
     //  std::cout << rays.size() << std::endl;
     glDisable(GL_LIGHTING);
-    glDisable(GL_TEXTURE_2D);
+    if (realtime) drawRealtimeRT();
     glLineWidth(6);
     glColor3f(1,0,0);
     glBegin(GL_LINES);
@@ -154,6 +200,8 @@ void draw () {
     }
     glEnd();
 }
+
+
 
 void display () {
     glLoadIdentity ();
@@ -212,6 +260,9 @@ void key (unsigned char keyPressed, int x, int y) {
         rays.clear();
         renderer.render(camera, scenes[selected_scene]);
         last_action_is_scene_changed = false;
+        break;
+    case 'y':
+        realtime = !realtime;
         break;
     
     case '+':

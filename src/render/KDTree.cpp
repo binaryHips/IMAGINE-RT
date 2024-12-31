@@ -97,7 +97,6 @@ inline void KDTree::SplittingPlane::add_tri(KdTriangle* tri){
 
 bool KDTree::SplittingPlane::collideAABB(const Ray & r) const { // https://tavianator.com/2011/ray_box.html
 
-    // TODO optimiser ces soustractions en boucle
     Vec3 aa1_to_r = AABB_v1 - r.origin();
     Vec3 aa2_to_r = AABB_v2 - r.origin();
     Vec3 facs(1.0/r.direction()[0], 1.0 / r.direction()[1], 1.0 / r.direction()[2]);

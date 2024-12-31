@@ -254,7 +254,7 @@ public:
         glDrawElements(GL_TRIANGLES, triangles_array.size(), GL_UNSIGNED_INT, (GLvoid*)(triangles_array.data()));
 
 
-        // simple debug draw for AABB (does it work?)
+        // simple debug draw for AABB 
 
         glPointSize(5);   
         glColor3f(0.5f, 1.0f, 5.0f);

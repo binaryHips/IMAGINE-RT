@@ -316,7 +316,7 @@ public:
         }
         return false;
     }
-    const int N_OCCLUSION_RAYS = 10;
+    const int N_OCCLUSION_RAYS = 8;
 
     void traceOcclusionRays(const Vec3 position, std::vector<float> & res) const {
         for (int l_idx = 0; l_idx < lights.size(); l_idx++){
@@ -399,7 +399,7 @@ public:
 
         RayResult v; // struct defined in renderer.h
 
-        rayTraceRecursive(rayStart, v, 5, true, true );
+        rayTraceRecursive(rayStart, v, 10, true, true );
 
         return v;
     }

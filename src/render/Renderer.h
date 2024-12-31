@@ -28,6 +28,7 @@ class Renderer{
     friend void ray_trace_from_camera_singlethreaded(Renderer & renderer, const Scene & scene);
 
     friend PostProcessEffect;
+    friend void postProcessSquare(Renderer & renderer, PostProcessEffect & posteffect, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx); // needed in postprocess
 
 private:
 
@@ -49,6 +50,8 @@ private:
 public:
     int w;
     int h;
+
+    bool silent = false;
     
     unsigned int nsamples; 
 
@@ -76,12 +79,13 @@ public:
         nsamples(samples_per_pixel)
         {}
 
-    void render(Camera & camera, const Scene & scene,  bool export_after = true);
+    void render(Camera & camera, const Scene & scene, bool export_after = true);
     
     void postProcess();
 
     void export_to_file(const std::string & filename = "./rendu.ppm");
 
+    std::vector< Color >& getImage(){ return result_image;}
     
     friend Renderer & operator<<(Renderer& renderer, PostProcessEffect* pp) {
         renderer.postProcessPipeline.push_back(
