@@ -159,6 +159,7 @@ public:
 
     Vec3 AABB_v1, AABB_v2;
     int material_id;
+    bool cull_backfaces = true;
 
     void loadOFF (std::string filename);
     void recomputeNormals ();
@@ -285,7 +286,7 @@ public:
 
     }
 
-    RayTriangleIntersection intersect( Ray const & ray ) const {
+    RayTriangleIntersection intersect( Ray const & ray) const {
         RayTriangleIntersection closestIntersection;
         closestIntersection.intersectionExists = false;
         closestIntersection.t = FLT_MAX;
@@ -297,7 +298,7 @@ public:
         
         for (Triangle triangle: triangle_primitives){
 
-            RayTriangleIntersection res = triangle.getIntersection(ray);
+            RayTriangleIntersection res = triangle.intersect(ray, cull_backfaces);
 
             if (res.intersectionExists && res.t < closestIntersection.t) closestIntersection = res;
         }

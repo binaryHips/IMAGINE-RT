@@ -87,6 +87,7 @@ public:
         float D = Vec3::dot(m_bottom_left, m_normal);
 
         float dot_dir_norm = Vec3::dot(ray.direction(), m_normal);
+        if (cull_backfaces &&  dot_dir_norm > 0) return intersection;
         if (dot_dir_norm == 0) return intersection;
 
         float t = (D - Vec3::dot(ray.origin(), m_normal)) / dot_dir_norm;

@@ -45,13 +45,15 @@ public:
         //TODO Complete
     }
 
-    RayTriangleIntersection getIntersection( Ray const & ray ) const { // implementé à partir de https://fr.wikipedia.org/wiki/Algorithme_d%27intersection_de_M%C3%B6ller-Trumbore
+    RayTriangleIntersection intersect( Ray const & ray,  bool cull_backface = true) const { // implementé à partir de https://fr.wikipedia.org/wiki/Algorithme_d%27intersection_de_M%C3%B6ller-Trumbore
         RayTriangleIntersection result;
         result.t = FLT_MAX;
         Vec3 edge1, edge2, h, s, q;
         float a,f,u,v;
         edge1 = m_c[1] -  m_c[0];
         edge2 =  m_c[2] -  m_c[0];
+
+        if (cull_backface &&  Vec3::dot(m_normal, ray.direction()) >= 0) return result;
 
         h = Vec3::cross(ray.direction(), edge2);
         a = Vec3::dot(edge1, h);

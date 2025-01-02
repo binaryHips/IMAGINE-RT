@@ -195,7 +195,7 @@ public:
 
             RaySquareIntersection intersection = squares[i].intersect(ray);
 
-            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= MIN_OFFSET_VALUE && (Vec3::dot(intersection.normal, ray.direction()) < 0)){ // condition for backface culling
+            if (intersection.intersectionExists && intersection.t < min_dist  && intersection.t >= MIN_OFFSET_VALUE){ // condition for backface culling
 
                 result.intersectionExists = true;
 
@@ -241,8 +241,6 @@ public:
                     result.rayMeshIntersection = intersection.triangleIntersection;
                     result.typeOfIntersectedObject = INTERSECTION_MESH;
                     result.objectIndex = intersection.meshIndex;
-                    if (intersection.meshIndex>0)
-                        std::cout <<std::endl<< intersection.meshIndex <<  std::endl << std::endl ;
                 }
         }
         return result;
@@ -306,6 +304,7 @@ public:
                 }
             }
         } else {
+            /*
             KDTree::KdIntersectionResult intersection = kdTree.getIntersection(ray);
             if (intersection.triangleIntersection.intersectionExists &&
                 intersection.triangleIntersection.t >= MIN_OFFSET_VALUE &&
@@ -313,6 +312,8 @@ public:
                 ){
                     return true;
                 }
+            */
+           if (kdTree.hasIntersection(ray, dist_to_light)) return true;
         }
         return false;
     }

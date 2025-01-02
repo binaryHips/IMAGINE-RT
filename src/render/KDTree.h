@@ -22,11 +22,11 @@ static inline void set_AABB(const Triangle& t, Vec3 & res1, Vec3 & res2){
 class KDTree{
 protected:
     class SplittingPlane;
-    struct KdTriangle {Triangle triangle; Vec3 AABB_v1; Vec3 AABB_v2; const int meshIndex;};
+    struct KdTriangle {Triangle triangle; Vec3 AABB_v1; Vec3 AABB_v2; bool cull_backface = true; const int meshIndex;};
 
     using SpPointer = std::unique_ptr<SplittingPlane>;
 
-    static const int MAX_TRIANGLES_PER_LEAF = 3; //optimum apparement
+    static const int MAX_TRIANGLES_PER_LEAF = 3; //3 est optimum apparement
 public:
     struct KdIntersectionResult {RayTriangleIntersection triangleIntersection; int meshIndex=0; KdIntersectionResult() = default;};
     
@@ -39,11 +39,14 @@ public:
     explicit KDTree(const std::vector< Mesh >& meshes);
 
     KdIntersectionResult getIntersection(const Ray & r) const;
+
+    bool hasIntersection(const Ray & r, float max_t) const;
 };
 
 
 
 class KDTree::SplittingPlane {
+    friend KDTree;
 private:
     bool collideAABB(const Ray & r) const;
 public:

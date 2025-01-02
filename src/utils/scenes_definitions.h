@@ -462,23 +462,14 @@ Scene cornell_box_textured(){
     };
 
     //added
-    /*
+    
     Mesh mesh;
     mesh.loadOFF("./models/suzanne.off");
     mesh.translate(Vec3(0, 0, -1.4));
     mesh.build_arrays();
     mesh.material_id = simpleMat;
     scene.meshes.push_back(mesh); // copy but don't care
-    */
-
-    {
-        scene.spheres.resize( scene.spheres.size() + 1 );
-        Sphere & s = scene.spheres[scene.spheres.size() - 1];
-        s.m_center = Vec3(0. , 0. , -1.4);
-        s.m_radius = 1.f;
-        s.build_arrays();
-        s.material_id = simpleMat;
-    }
+    
     
     scene.generateKdTree();
     return scene;

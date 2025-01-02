@@ -150,7 +150,7 @@ class PhongMaterial: public Material{
 
                 Vec3 lightDir = (light.pos - l.position).normalized();
                 float diff = std::max(Vec3::dot(l.normal, lightDir), 0.0f);
-                Vec3 diffuse = Vec3::compProduct(light.material, diff * diffuse_color);
+                Vec3 diffuse = diff * Vec3::compProduct(light.material, diffuse_color);
 
                 // Specular
 

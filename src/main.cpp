@@ -127,10 +127,11 @@ void clear () {
 
 
 unsigned int realtime_texture;
+
 void setup_renderer(){
     renderer = Renderer(
         480, 480,
-        100
+        50
     );
     //renderer << postprocess::utils::Depth::create();
     realtime_renderer = Renderer(
@@ -152,6 +153,7 @@ void setup_renderer(){
 
 void drawRealtimeRT(){ // https://stackoverflow.com/questions/31482816/opengl-is-there-an-easier-way-to-fill-window-with-a-texture-instead-using-vbo
     
+
     realtime_renderer.render(camera, scenes[selected_scene]);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, realtime_texture);

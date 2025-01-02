@@ -19,7 +19,7 @@ KDTree::KDTree(const std::vector< Mesh >& meshes){
 
             set_AABB(t, AABB_v1, AABB_v2);
 
-            tris.push_back({t, AABB_v1, AABB_v2, i});
+            tris.push_back({t, AABB_v1, AABB_v2, mesh.cull_backfaces, i});
             
         }
     }
@@ -71,13 +71,14 @@ KDTree::KDTree(const std::vector< Mesh >& meshes){
 
         // safeguard for edge cases (ex: 46 triangles in exactly the same spot...)
         
-        if (child_1->tris == current->tris || child_2->tris == current->tris ){
+        if (child_1->tris == current->tris || child_2->tris == current->tris ){ // TODO wait at least 3 iterations before calling it a day, so we try each dimension once
             child_1->is_leaf = child_2->is_leaf = true;
 
         } else {
             to_process.push_back(current->first_side_child);
             to_process.push_back(current->second_side_child);
         }
+        tris.clear(); // free the memory if we're not a leaf
     }
     //std::cout << "nodes  " << n_nodes << std::endl;
 }
@@ -99,22 +100,21 @@ bool KDTree::SplittingPlane::collideAABB(const Ray & r) const { // https://tavia
 
     Vec3 aa1_to_r = AABB_v1 - r.origin();
     Vec3 aa2_to_r = AABB_v2 - r.origin();
-    Vec3 facs(1.0/r.direction()[0], 1.0 / r.direction()[1], 1.0 / r.direction()[2]);
 
-    float tx1 = (aa1_to_r[0]) * facs[0];
-    float tx2 = (aa2_to_r[0]) * facs[0];
+    float tx1 = (aa1_to_r[0]) * r.invdir[0];
+    float tx2 = (aa2_to_r[0]) * r.invdir[0];
 
     float tmin = std::min(tx1, tx2);
     float tmax = std::max(tx1, tx2);
 
-    float ty1 = (aa1_to_r[1]) * facs[1];
-    float ty2 = (aa2_to_r[1]) * facs[1];
+    float ty1 = (aa1_to_r[1]) * r.invdir[1];
+    float ty2 = (aa2_to_r[1]) * r.invdir[1];
 
     tmin = std::max(tmin, std::min(ty1, ty2));
     tmax = std::min(tmax, std::max(ty1, ty2));
 
-    float tz1 = (aa1_to_r[2]) * facs[2];
-    float tz2 = (aa2_to_r[2]) * facs[2];
+    float tz1 = (aa1_to_r[2]) * r.invdir[2];
+    float tz2 = (aa2_to_r[2]) * r.invdir[2];
 
     tmin = std::max(tmin, std::min(tz1, tz2));
     tmax = std::min(tmax, std::max(tz1, tz2));
@@ -122,6 +122,34 @@ bool KDTree::SplittingPlane::collideAABB(const Ray & r) const { // https://tavia
     return tmax >= tmin;
     return tmax >= tmin;
 }
+
+bool KDTree::hasIntersection(const Ray & r, float max_t) const{ // iterative because then we can return once and don't have to wait for the whole stack
+    std::vector < std::reference_wrapper<const SpPointer> > to_process = {root};
+    while (! to_process.empty()){
+        const SpPointer & current = to_process.back(); to_process.pop_back();
+        if (!current->collideAABB(r)) continue;
+
+        if (current->is_leaf){
+
+            RayTriangleIntersection candidate;
+
+            for (const KdTriangle * tri: current->tris){
+                candidate = tri->triangle.intersect(r, false);
+                if (candidate.intersectionExists && candidate.t > MIN_OFFSET_VALUE && candidate.t < max_t){
+                    return true;
+                }
+            }
+        }
+        else{
+            to_process.push_back(current->first_side_child);
+            to_process.push_back(current->second_side_child);
+        }
+    }
+    return false;
+}
+
+
+
 
 const KDTree::KdIntersectionResult final_result;
 
@@ -134,7 +162,7 @@ KDTree::KdIntersectionResult KDTree::SplittingPlane::getIntersection(const Ray &
         int meshIndex;
 
         for (const KdTriangle * tri: tris){
-            candidate = tri->triangle.getIntersection(r);
+            candidate = tri->triangle.intersect(r, tri->cull_backface);
             if (candidate.intersectionExists && candidate.t < result.t){
                 result = candidate;
                 meshIndex = tri->meshIndex;
@@ -153,3 +181,4 @@ KDTree::KdIntersectionResult KDTree::SplittingPlane::getIntersection(const Ray &
     }
 
 }
+
