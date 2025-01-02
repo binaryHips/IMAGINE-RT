@@ -259,7 +259,7 @@ public:
             RaySphereIntersection intersection = spheres[i].intersect(ray);
 
             if (intersection.intersectionExists &&
-                intersection.t >= MIN_OFFSET_VALUE &&
+                intersection.t >= MIN_OFFSET_VALUE*10.0 &&
                 intersection.t < dist_to_light
                 ){
                 return true;

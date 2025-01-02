@@ -139,7 +139,7 @@ void setup_renderer(){
         1
     );
     realtime_renderer.silent = true;
-    realtime_renderer << postprocess::denoise::Similarity::create(1.0);
+    //realtime_renderer << postprocess::denoise::Similarity::create(1.0);
 
     // for realtime
     glEnable(GL_TEXTURE_2D);
@@ -154,7 +154,7 @@ void setup_renderer(){
 void drawRealtimeRT(){ // https://stackoverflow.com/questions/31482816/opengl-is-there-an-easier-way-to-fill-window-with-a-texture-instead-using-vbo
     
 
-    realtime_renderer.render(camera, scenes[selected_scene]);
+    realtime_renderer.render(camera, scenes[selected_scene], false);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, realtime_texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, realtime_renderer.w, realtime_renderer.h, 0, GL_RGB, GL_UNSIGNED_BYTE, (void*)realtime_renderer.getImage().data());

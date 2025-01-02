@@ -210,19 +210,19 @@ static Scene cornell_box(){
 
     int planeMatRed = scene.addMaterial(
         PhongMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.2
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 2.0
         )
     );
 
     int planeMatWhite = scene.addMaterial(
         PhongMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,1.0,1.0 ), Vec3( 0.2,0.2,0.2 ), 0.5
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,1.0,1.0 ), Vec3( 0.2,0.2,0.2 ), 3.0
         )
     );
 
     int planeMatGreen = scene.addMaterial(
         PhongMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,1.0,0.3 ), Vec3( 0.2,0.2,0.2 ), 0.2
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,1.0,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.0
         )
     );
 
@@ -381,9 +381,9 @@ Scene cornell_box_textured(){
     {
         scene.lights.resize( scene.lights.size() + 1 );
         Light & light = scene.lights[scene.lights.size() - 1];
-        light.pos = Vec3( 0.0, 1.0, 0.0 );
-        light.radius = 0.5f;
-        light.powerCorrection = 3.f;
+        light.pos = Vec3( 0.0, 1.0, 1.0 );
+        light.radius = 2.5f;
+        light.powerCorrection = 2.f;
         light.type = LightType_Spherical;
         light.material = Vec3(1,1,1);
         light.isInCamSpace = false;
@@ -465,7 +465,7 @@ Scene cornell_box_textured(){
     
     Mesh mesh;
     mesh.loadOFF("./models/suzanne.off");
-    mesh.translate(Vec3(0, 0, -1.4));
+    mesh.translate(Vec3(0, 0, -1));
     mesh.build_arrays();
     mesh.material_id = simpleMat;
     scene.meshes.push_back(mesh); // copy but don't care

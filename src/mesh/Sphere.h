@@ -87,8 +87,6 @@ public:
 
         intersection.intersectionExists = false;
 
-
-
         Vec3 c_to_o = ray.origin() - m_center;
         float b = 2.0 * Vec3::dot(ray.direction(), c_to_o);
         float a = Vec3::dot(ray.direction(), ray.direction());

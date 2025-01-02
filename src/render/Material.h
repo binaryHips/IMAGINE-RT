@@ -146,7 +146,7 @@ class PhongMaterial: public Material{
 
                 const Light & light = l.lights[i];
 
-                // Diffuse 
+                // Diffuse
 
                 Vec3 lightDir = (light.pos - l.position).normalized();
                 float diff = std::max(Vec3::dot(l.normal, lightDir), 0.0f);
