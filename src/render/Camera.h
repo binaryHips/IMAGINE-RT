@@ -13,6 +13,19 @@
 #include "src/utils/Trackball.h"
 
 class Camera {
+
+private:
+  float fovAngle;
+  float aspectRatio;
+  float nearPlane;
+  float farPlane;
+  
+  int spinning, moving;
+  int beginu, beginv;
+  int H, W;
+  float curquat[4];
+  float lastquat[4];
+  float _zoom;
 public:
   Camera ();
   virtual ~Camera () {}
@@ -34,26 +47,15 @@ public:
   void move (float dx, float dy, float dz);
   void beginRotate (int u, int v);
   void rotate (int u, int v);
+  void reset_rotation() {curquat[0] = 1; curquat[1] = 0; curquat[2] = 0; curquat[3] = 0;}
   void endRotate ();
   void zoom (float z);
   void apply ();
   
   void getPos (float & x, float & y, float & z);
   inline void getPos (Vec3 & p) { getPos (p[0], p[1], p[2]); }
-  
-private:
-  float fovAngle;
-  float aspectRatio;
-  float nearPlane;
-  float farPlane;
-  
-  int spinning, moving;
-  int beginu, beginv;
-  int H, W;
-  float curquat[4];
-  float lastquat[4];
   float x, y, z;
-  float _zoom;
+
 };
 
 #endif // CAMERA_H

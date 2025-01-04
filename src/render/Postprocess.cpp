@@ -258,7 +258,7 @@ void postprocess::utils::Normals::FRAGMENT{
 
 void postprocess::denoise::Similarity::FRAGMENT{
 
-    static const int size = 2;
+    static const int size = 3;
     static const float norm_thresh = 0.8f;
     static const float color_thresh = 0.3f;
     static const float depth_thresh = 0.2f;
@@ -280,7 +280,7 @@ void postprocess::denoise::Similarity::FRAGMENT{
             abs(sampleBuffer(DEPTH, u+i, v+j) -d) <= depth_thresh&&
             //abs(Vec3::dot(sampleBuffer(NORMAL, u+i, v+j), n)) >= norm_thresh &&
             Vec3::dot(col_diff, col_diff)<= std::pow(color_thresh,2.0) ||
-            (abs(i) + abs(j) < 2) // AA
+            (abs(i) + abs(j) < 1) // AA
         ){
             mean_color_around += col;
             dist_to_mean_luminance += col.luminance();
@@ -289,7 +289,6 @@ void postprocess::denoise::Similarity::FRAGMENT{
     }
     mean_color_around /= (float)count;
     dist_to_mean_luminance = OUT.luminance() - (dist_to_mean_luminance / count);
-
     OUT = OUT * (1.0f - fac) + mean_color_around * fac;
     
 }

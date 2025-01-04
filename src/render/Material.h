@@ -169,6 +169,7 @@ class TexturedMaterial: public PhongMaterial{
 public:
         std::unique_ptr<Texture> albedo_map;
         std::unique_ptr<Texture> normal_map;
+        bool emissive = false;
         TexturedMaterial() = default;
         
         TexturedMaterial(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color){
@@ -178,9 +179,10 @@ public:
             casts_shadows = true;
         }
 
-        explicit TexturedMaterial(const std::string & path_to_albedo){
+        explicit TexturedMaterial(const std::string & path_to_albedo, bool is_emissive = false){
             albedo_map = ImageTexture::fromPPM(path_to_albedo);
             casts_shadows = true;
+            emissive = is_emissive;
         }
         
         TexturedMaterial(TexturedMaterial&& other) noexcept
@@ -197,8 +199,8 @@ public:
             return std::make_shared< TexturedMaterial >(ambient_color, diffuse_color, specular_color);
         }
 
-        static std::shared_ptr< TexturedMaterial > create(const std::string & path_to_albedo) {
-            auto t = std::make_shared< TexturedMaterial >(path_to_albedo);
+        static std::shared_ptr< TexturedMaterial > create(const std::string & path_to_albedo, bool emissive = false) {
+            auto t = std::make_shared< TexturedMaterial >(path_to_albedo, emissive);
 
             return t;
         }
@@ -214,6 +216,8 @@ public:
             //Vec3 tex_normal = (normal_map != nullptr)? normal_map->sampleVector(l.uv): ambient_color;
             
             Vec3 diffuse_val = (albedo_map != nullptr)? albedo_map->sampleVector(l.uv): ambient_color;
+
+            if (emissive) return diffuse_val;
 
             Vec3 result = ambient_color;
             for(int i = 0; i < l.lights.size(); ++i){
@@ -235,9 +239,6 @@ public:
 
             return result;
         }
-
-
-
 };
 
 class MirrorMaterial: public Material{
@@ -286,11 +287,12 @@ public:
 
         res = (Vec3::dot(incident, normal) < 0) ?
             incident.refract(normal, 1.0003f, index_medium) :
-            incident.refract(normal, index_medium, 1.0003f) ;
+            incident.refract(-normal, index_medium, 1.0003f) ;
         return true;
     }
 
     inline Vec3 computeColor(const LightingData & l) const override{
         return l.scatter_result;
+
     }
 };

@@ -212,6 +212,7 @@ void display () {
     draw ();
     glFlush ();
     glutSwapBuffers ();
+    std::cout << camera.x << " " << camera.y << " " << camera.z <<std::endl;
 }
 
 void idle () {
@@ -284,6 +285,17 @@ void key (unsigned char keyPressed, int x, int y) {
 
     case '5':
         camera.move(0.0, 0.0, -0.1); break;
+
+    case '3':
+        camera.x = 0;
+        camera.y = 0;
+        camera.z = 0;
+
+        camera.reset_rotation();
+        camera.rotate(90, 0);
+        
+        break;
+
     default:
         printUsage ();
         break;

@@ -336,8 +336,9 @@ public:
     }
 
     void rayTraceRecursive( Ray const & ray , RayResult & res, int NRemainingBounces, bool update_depth = true, bool update_normal = true ) const {
-        if (NRemainingBounces == 0) return;
-
+        if (NRemainingBounces == 0){
+            return;
+        }
         RaySceneIntersection raySceneIntersection = computeIntersection(ray);
         
         if (!raySceneIntersection.intersectionExists){ // if no collision
@@ -400,7 +401,7 @@ public:
 
         RayResult v; // struct defined in renderer.h
 
-        rayTraceRecursive(rayStart, v, 10, true, true );
+        rayTraceRecursive(rayStart, v, 100, true, true );
 
         return v;
     }

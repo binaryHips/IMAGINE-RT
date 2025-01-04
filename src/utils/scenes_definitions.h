@@ -9,6 +9,12 @@ static Scene sphere_and_plane() {
     scene.name = "Setup test textures";
     //materials
 
+    int glassMat = scene.addMaterial(
+    GlassMaterial::create(
+        Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.4
+        )  
+    );
+
     int sphereMat = scene.addMaterial(
         PhongMaterial::create(
             Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.05
@@ -42,6 +48,7 @@ static Scene sphere_and_plane() {
         s.recomputeVectors();
         s.material_id = planeMat;
     }
+
     // added 
 
     {
@@ -198,7 +205,7 @@ static Scene cornell_box(){
     //materials
     int glassMat = scene.addMaterial(
         GlassMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.4
         )
     );
 
@@ -382,8 +389,8 @@ Scene cornell_box_textured(){
         scene.lights.resize( scene.lights.size() + 1 );
         Light & light = scene.lights[scene.lights.size() - 1];
         light.pos = Vec3( 0.0, 1.0, 1.0 );
-        light.radius = 2.5f;
-        light.powerCorrection = 2.f;
+        light.radius = 1.5f;
+        light.powerCorrection = 4.f;
         light.type = LightType_Spherical;
         light.material = Vec3(1,1,1);
         light.isInCamSpace = false;
@@ -464,12 +471,167 @@ Scene cornell_box_textured(){
     //added
     
     Mesh mesh;
-    mesh.loadOFF("./models/suzanne.off");
-    mesh.translate(Vec3(0, 0, -1));
+    mesh.loadOFF("./models/flamant/flamant.off");
+    mesh.rotate_y(-90);
+    mesh.scale(Vec3(0.004));
+    mesh.translate(Vec3(0, -2, 2.5));
     mesh.build_arrays();
-    mesh.material_id = simpleMat;
+    mesh.material_id = mirrorMat;
     scene.meshes.push_back(mesh); // copy but don't care
     
+    
+    scene.generateKdTree();
+    return scene;
+}
+
+Scene flamant(){
+    
+    Scene scene;
+    scene.name = "flamant";
+    //materials
+    int glassMat = scene.addMaterial(
+        GlassMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
+        )
+    );
+
+    int mirrorMat = scene.addMaterial(
+        MirrorMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.3,0.9 ), Vec3( 0.2,0.2,0.2 )
+        )
+    );
+
+
+
+    int bgMat = scene.addMaterial( // https://opengameart.org/content/seamless-space-backgrounds
+        TexturedMaterial::create(
+            "models/flamant/Blue-Nebula-1-1024x1024.ppm", true
+        )
+    );
+
+    int groundMat = scene.addMaterial(
+        PhongMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.25,0.2 ), Vec3( 1.0, 1.0, 1.0 ), 2.0
+        )
+    );
+    int pillarsMat = scene.addMaterial(
+        PhongMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.1,0.1,0.2 ), Vec3( 1.0, 1.0, 1.0 ), 2.0
+        )
+    );
+
+    float p = 30;
+
+    { //bg
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -p));
+        s.scale(Vec3(p , p , 1.));
+        s.rotate_y(90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = bgMat;
+    }
+    { //bg
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -p));
+        s.scale(Vec3(p , p , 1.));
+        s.rotate_y(0);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = bgMat;
+    }
+    { //bg
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -p));
+        s.scale(Vec3(p , p , 1.));
+        s.rotate_y(180);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = bgMat;
+    }
+    { //bg
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -p));
+        s.scale(Vec3(p , p , 1.));
+        s.rotate_y(-90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = bgMat;
+    }
+    { //bg
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -p));
+        s.scale(Vec3(p , p , 1.));
+        s.rotate_x(-90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = bgMat;
+    }
+    { //bg
+        scene.squares.resize( scene.squares.size() + 1 );
+        Square & s = scene.squares[scene.squares.size() - 1];
+        s.setQuad(Vec3(-1., -1., 0.), Vec3(1., 0, 0.), Vec3(0., 1, 0.), 2., 2.);
+        s.translate(Vec3(0., 0., -p));
+        s.scale(Vec3(p , p , 1.));
+        s.rotate_x(90);
+        s.build_arrays();
+        s.recomputeVectors();
+        s.material_id = bgMat;
+    }
+
+    //added
+    
+    Mesh mesh;
+    mesh.loadOFF("./models/flamant/flamant.off");
+    mesh.scale(Vec3(0.01));
+    mesh.build_arrays();
+    mesh.material_id = mirrorMat;
+    scene.meshes.push_back(mesh);
+
+    mesh = Mesh();
+    mesh.loadOFF("./models/flamant/ground.off");
+    mesh.scale(Vec3(0.01));
+    mesh.build_arrays();
+    mesh.material_id = groundMat;
+    scene.meshes.push_back(mesh);
+
+    mesh = Mesh();
+    mesh.loadOFF("./models/flamant/pillars.off");
+    mesh.scale(Vec3(0.01));
+    mesh.build_arrays();
+    mesh.material_id = pillarsMat;
+    scene.meshes.push_back(mesh);
+
+    {
+        scene.lights.resize( scene.lights.size() + 1 );
+        Light & light = scene.lights[scene.lights.size() - 1];
+        light.pos = Vec3( 0.0, 1.0, 0.0 );
+        light.radius = 0.2f;
+        light.powerCorrection = 10.f;
+        light.type = LightType_Spherical;
+        light.material = Vec3(1,1,1);
+        light.isInCamSpace = false;
+    }
+    {
+        scene.lights.resize( scene.lights.size() + 1 );
+        Light & light = scene.lights[scene.lights.size() - 1];
+        light.pos = Vec3( -10.0, 2.0, .0 );
+        light.radius = 1.0f;
+        light.powerCorrection = 10.f;
+        light.type = LightType_Spherical;
+        light.material = Vec3(1,0.5,0.5);
+        light.isInCamSpace = false;
+    }
     
     scene.generateKdTree();
     return scene;
@@ -493,5 +655,6 @@ std::vector<Scene> getScenes(){
     res.push_back(mesh_with_kdTree());
     res.push_back(cornell_box());
     res.push_back(cornell_box_textured());
+    res.push_back(flamant());
     return res;
 }

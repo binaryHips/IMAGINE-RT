@@ -5,7 +5,7 @@
 #include <iostream>
 #include <array>
 
-const float MIN_OFFSET_VALUE = 1e-5f;
+const float MIN_OFFSET_VALUE = 1e-4f;
 
 
 class Vec3;
@@ -24,7 +24,7 @@ public:
     }
     float & operator [] (unsigned int c) { return mVals[c]; }
     float operator [] (unsigned int c) const { return mVals[c]; }
-    Vec3 operator = (Vec3 const & other) {
+    Vec3& operator = (Vec3 const & other) {
        mVals[0] = other[0] ; mVals[1] = other[1]; mVals[2] = other[2];
        return *this;
     }
@@ -102,7 +102,6 @@ public:
         const float n = n1 / n2;
         const float cosI = -Vec3::dot(N, *this);
         const float sinT2 = n * n * (1.0 - cosI * cosI);
-        //if(sinT2 > 1.0) return Vector::invalid; // TIR
         const float cosT = sqrt(1.0 - sinT2);
         return n * *this + (n * cosI - cosT) * N;
     }

@@ -67,6 +67,4 @@ public:
     void add_tri(KdTriangle* tri);
 
     KdIntersectionResult getIntersection(const Ray & r) const;
-
-
 };
