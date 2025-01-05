@@ -49,8 +49,8 @@ using namespace std;
 // -------------------------------------------
 
 static GLint window;
-static unsigned int SCREENWIDTH = 480;
-static unsigned int SCREENHEIGHT = 480;
+static unsigned int SCREENWIDTH = 1920;
+static unsigned int SCREENHEIGHT = 1080;
 static Camera camera;
 static bool mouseRotatePressed = false;
 static bool mouseMovePressed = false;
@@ -129,17 +129,24 @@ void clear () {
 unsigned int realtime_texture;
 
 void setup_renderer(){
+    /*
     renderer = Renderer(
         480, 480,
         50
+    );*/
+    renderer = Renderer(
+        1920, 1080,
+        2
     );
+    renderer << postprocess::blur::Cross_blur::create(6);
+
     //renderer << postprocess::utils::Depth::create();
     realtime_renderer = Renderer(
         360, 360,
         1
     );
     realtime_renderer.silent = true;
-    //realtime_renderer << postprocess::denoise::Similarity::create(1.0);
+    realtime_renderer << postprocess::denoise::Similarity::create(1.0);
 
     // for realtime
     glEnable(GL_TEXTURE_2D);
@@ -212,7 +219,7 @@ void display () {
     draw ();
     glFlush ();
     glutSwapBuffers ();
-    std::cout << camera.x << " " << camera.y << " " << camera.z <<std::endl;
+    //std::cout << camera.curquat[0] << " " << camera.curquat[1] << " " << camera.curquat[2] << " " << camera.curquat[3] <<std::endl;
 }
 
 void idle () {
@@ -290,9 +297,14 @@ void key (unsigned char keyPressed, int x, int y) {
         camera.x = 0;
         camera.y = 0;
         camera.z = 0;
+        camera.move(0.0, 0.0, -12);
 
         camera.reset_rotation();
-        camera.rotate(90, 0);
+        camera.beginRotate (SCREENWIDTH/2, SCREENHEIGHT/2);
+        camera.rotate(0, SCREENHEIGHT/2);
+        camera.endRotate();
+
+        
         
         break;
 

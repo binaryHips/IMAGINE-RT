@@ -47,7 +47,7 @@ public:
   void move (float dx, float dy, float dz);
   void beginRotate (int u, int v);
   void rotate (int u, int v);
-  void reset_rotation() {curquat[0] = 1; curquat[1] = 0; curquat[2] = 0; curquat[3] = 0;}
+  void reset_rotation() {curquat[0] = 0; curquat[1] = 0; curquat[2] = 0; curquat[3] = 1;}
   void endRotate ();
   void zoom (float z);
   void apply ();

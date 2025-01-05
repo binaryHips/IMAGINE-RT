@@ -6,7 +6,7 @@
 #include <random>
 #include <GL/glut.h>
 #include "src/utils/Texture.h"
-
+#include <algorithm>
 
 
 static float randomUnitFloat()
@@ -293,6 +293,40 @@ public:
 
     inline Vec3 computeColor(const LightingData & l) const override{
         return l.scatter_result;
+
+    }
+};
+
+
+
+class FlamantMaterial: public Material{
+
+    float index_medium;
+public:
+    FlamantMaterial(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color, float index_medium){
+        this->ambient_color = ambient_color;
+        this->diffuse_color = diffuse_color;
+        this->specular_color = specular_color;
+        this->index_medium = index_medium;
+        this->casts_shadows = true;
+    }
+
+    static std::shared_ptr< FlamantMaterial > create(Vec3 ambient_color, Vec3 diffuse_color, Vec3 specular_color, float index_medium) {
+        return std::make_shared< FlamantMaterial >(ambient_color, diffuse_color, specular_color, index_medium);
+    }
+
+    inline bool scatter(Vec3 incident, Vec3 normal, Vec3 & res) const override {
+
+        res = incident.reflect(normal);
+        return true;
+    }
+
+    inline Vec3 computeColor(const LightingData & l) const override{
+        return Vec3::lerp(
+            l.scatter_result + Vec3(0.03, 0.0, 0.0),
+            diffuse_color,
+            std::clamp(std::pow(Vec3::dot(l.view, -l.normal), 10.0), 0.0, 1.0)
+        );
 
     }
 };

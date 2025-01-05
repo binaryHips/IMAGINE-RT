@@ -113,6 +113,11 @@ public:
     float luminance() const {
         return 0.299*mVals[0] + 0.587*mVals[1] + 0.114*mVals[2];
     }
+
+    static inline Vec3 lerp(const Vec3 & p, const Vec3 & q, float v) {
+        return v*q  + (1.0-v) * p;
+    }
+
 };
 
 static inline Vec3 operator + (Vec3 const & a , Vec3 const & b) {

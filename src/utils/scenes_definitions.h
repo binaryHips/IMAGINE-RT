@@ -489,15 +489,10 @@ Scene flamant(){
     Scene scene;
     scene.name = "flamant";
     //materials
-    int glassMat = scene.addMaterial(
-        GlassMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.3,0.3 ), Vec3( 0.2,0.2,0.2 ), 1.1
-        )
-    );
 
-    int mirrorMat = scene.addMaterial(
-        MirrorMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.3,0.9 ), Vec3( 0.2,0.2,0.2 )
+    int flamantMat = scene.addMaterial(
+        FlamantMaterial::create(
+            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.0,0.0 ), Vec3( 0.2,0.2,0.2 ), 1.1
         )
     );
 
@@ -511,16 +506,16 @@ Scene flamant(){
 
     int groundMat = scene.addMaterial(
         PhongMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.25,0.2 ), Vec3( 1.0, 1.0, 1.0 ), 2.0
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.3,0.1,0.1 ), Vec3( 0.8, 0.5, 0.3 ), 1.0
         )
     );
     int pillarsMat = scene.addMaterial(
         PhongMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 0.1,0.1,0.2 ), Vec3( 1.0, 1.0, 1.0 ), 2.0
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.1,0.1,0.1 ), Vec3( 1.0, 0.7, 0.6 ), 4.0
         )
     );
 
-    float p = 30;
+    float p = 60;
 
     { //bg
         scene.squares.resize( scene.squares.size() + 1 );
@@ -529,6 +524,7 @@ Scene flamant(){
         s.translate(Vec3(0., 0., -p));
         s.scale(Vec3(p , p , 1.));
         s.rotate_y(90);
+        s.translate(Vec3(0., p/2.0, 0.0));
         s.build_arrays();
         s.recomputeVectors();
         s.material_id = bgMat;
@@ -540,6 +536,7 @@ Scene flamant(){
         s.translate(Vec3(0., 0., -p));
         s.scale(Vec3(p , p , 1.));
         s.rotate_y(0);
+        s.translate(Vec3(0., p/2.0, 0.0));
         s.build_arrays();
         s.recomputeVectors();
         s.material_id = bgMat;
@@ -551,6 +548,7 @@ Scene flamant(){
         s.translate(Vec3(0., 0., -p));
         s.scale(Vec3(p , p , 1.));
         s.rotate_y(180);
+        s.translate(Vec3(0., p/2.0, 0.0));
         s.build_arrays();
         s.recomputeVectors();
         s.material_id = bgMat;
@@ -562,6 +560,7 @@ Scene flamant(){
         s.translate(Vec3(0., 0., -p));
         s.scale(Vec3(p , p , 1.));
         s.rotate_y(-90);
+        s.translate(Vec3(0., p/2.0, 0.0));
         s.build_arrays();
         s.recomputeVectors();
         s.material_id = bgMat;
@@ -573,6 +572,7 @@ Scene flamant(){
         s.translate(Vec3(0., 0., -p));
         s.scale(Vec3(p , p , 1.));
         s.rotate_x(-90);
+        s.translate(Vec3(0., p/2.0, 0.0));
         s.build_arrays();
         s.recomputeVectors();
         s.material_id = bgMat;
@@ -595,7 +595,7 @@ Scene flamant(){
     mesh.loadOFF("./models/flamant/flamant.off");
     mesh.scale(Vec3(0.01));
     mesh.build_arrays();
-    mesh.material_id = mirrorMat;
+    mesh.material_id = flamantMat;
     scene.meshes.push_back(mesh);
 
     mesh = Mesh();
@@ -611,27 +611,28 @@ Scene flamant(){
     mesh.build_arrays();
     mesh.material_id = pillarsMat;
     scene.meshes.push_back(mesh);
-
+    
     {
         scene.lights.resize( scene.lights.size() + 1 );
         Light & light = scene.lights[scene.lights.size() - 1];
-        light.pos = Vec3( 0.0, 1.0, 0.0 );
-        light.radius = 0.2f;
-        light.powerCorrection = 10.f;
-        light.type = LightType_Spherical;
-        light.material = Vec3(1,1,1);
-        light.isInCamSpace = false;
-    }
-    {
-        scene.lights.resize( scene.lights.size() + 1 );
-        Light & light = scene.lights[scene.lights.size() - 1];
-        light.pos = Vec3( -10.0, 2.0, .0 );
+        light.pos = Vec3( 0.0, 4.0, 0.0 );
         light.radius = 1.0f;
-        light.powerCorrection = 10.f;
+        light.powerCorrection = 1.f;
         light.type = LightType_Spherical;
-        light.material = Vec3(1,0.5,0.5);
+        light.material = Vec3(1,0.2,0.3);
         light.isInCamSpace = false;
     }
+    {
+        scene.lights.resize( scene.lights.size() + 1 );
+        Light & light = scene.lights[scene.lights.size() - 1];
+        light.pos = Vec3( -8.0, 8.0, 0 );
+        light.radius = 1.1f;
+        light.powerCorrection = 80.f;
+        light.type = LightType_Spherical;
+        light.material = Vec3(1,0.3,0.3);
+        light.isInCamSpace = false;
+    }
+
     
     scene.generateKdTree();
     return scene;

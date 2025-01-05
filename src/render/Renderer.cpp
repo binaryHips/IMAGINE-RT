@@ -140,7 +140,7 @@ void ray_trace_from_camera_multithreaded(Renderer & renderer, const Scene & scen
     getNearAndFarPlanes(near_far_planes.data());
     glMatrixMode (GL_MODELVIEW);
     
-    int n_square_x = renderer.h / area_size;
+    int n_square_x = renderer.w / area_size;
     int rest_x = renderer.w % area_size;
 
     int n_square_y = renderer.h / area_size;

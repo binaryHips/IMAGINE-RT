@@ -50,8 +50,9 @@ public:
                 if (u<0) u += w;
                 if (v<0) v += h;
 
-                if (u >= w) u = 2*w - u;
-                if (v >= h) v = 2*h - v;
+                if (u >= w) u = 2*w - u - 1;
+                if (v >= h) v = 2*h - v - 1;
+
                 return accessData(
                     u,
                     v

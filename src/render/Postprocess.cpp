@@ -24,12 +24,11 @@ static inline void print_advancement(){
 inline int thread_idx_from_coord(int x, int y, int w){
     return (x + y * w);
 }
-
 void postProcessSquare(Renderer & renderer, PostProcessEffect & posteffect, int pos_x, int pos_y, int sizeX, int sizeY, std::mutex & mtx){
 
 
-    for (int u=pos_y; u<pos_y+sizeY; u++){
-        for (int v = pos_x; v<pos_x+sizeX; v++) {
+    for (int u=pos_x; u<pos_x+sizeX; u++){
+        for (int v = pos_y; v<pos_y+sizeY; v++) {
             Vec3 out(0, 0, 0);
             posteffect.fragment(
                 u, v, out,
@@ -38,6 +37,7 @@ void postProcessSquare(Renderer & renderer, PostProcessEffect & posteffect, int 
                 renderer.screen_space_normals,
                 renderer.screen_space_depth
             );
+            
             renderer.workspace[u + v * posteffect.w] = Color(out);
         }
     }
@@ -50,7 +50,7 @@ void PostProcessEffect::postProcessMultithreaded(Renderer & renderer){
     const unsigned int area_size = 40;
     if (!renderer.silent) std::cout << "Number of cores:  \033[31m" << std::thread::hardware_concurrency() << "\033[36m"<< std::endl;
 
-    int n_square_x = renderer.h / area_size;
+    int n_square_x = renderer.w / area_size;
     int rest_x = renderer.w % area_size;
 
     int n_square_y = renderer.h / area_size;
@@ -65,7 +65,7 @@ void PostProcessEffect::postProcessMultithreaded(Renderer & renderer){
     total_threads_n = n_threads;
     count = 0;
     if (!renderer.silent) print_advancement();
-
+    
     // full squares
     for (int i = 0; i < n_square_x; i+=1){
         for (int j = 0; j < n_square_y; j+=1){
@@ -161,8 +161,10 @@ inline int PostProcessEffect::idx_from_coord(int u, int v) const{
     if (u<0) u += w;
     if (v<0) v += h;
 
-    if (u >= w) u = 2*w - u;
-    if (v >= h) v = 2*h - v;
+    if (u >= w) u = 2*w - u-1;
+    if (v >= h) v = 2*h - v-1;
+
+    //if (u >= w-1 || v >= h-1) std::cout << u << " " << v << std::endl;
     return u + v * w;
 }
 inline Vec3 PostProcessEffect::sampleBuffer(const std::vector< Color > & buffer, int x, int y) const {
