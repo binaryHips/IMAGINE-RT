@@ -136,9 +136,12 @@ void setup_renderer(){
     );*/
     renderer = Renderer(
         1920, 1080,
-        2
+        100
     );
-    renderer << postprocess::blur::Cross_blur::create(6);
+    renderer << postprocess::color::Vignette::create(0.0, 0.7)
+        << postprocess::color::Value::create(1.3)
+
+    ;
 
     //renderer << postprocess::utils::Depth::create();
     realtime_renderer = Renderer(

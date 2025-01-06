@@ -388,9 +388,9 @@ Scene cornell_box_textured(){
     {
         scene.lights.resize( scene.lights.size() + 1 );
         Light & light = scene.lights[scene.lights.size() - 1];
-        light.pos = Vec3( 0.0, 1.0, 1.0 );
+        light.pos = Vec3( 0.0, 0.5, 1.0 );
         light.radius = 1.5f;
-        light.powerCorrection = 4.f;
+        light.powerCorrection = 6.5f;
         light.type = LightType_Spherical;
         light.material = Vec3(1,1,1);
         light.isInCamSpace = false;
@@ -511,7 +511,7 @@ Scene flamant(){
     );
     int pillarsMat = scene.addMaterial(
         PhongMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 0.1,0.1,0.1 ), Vec3( 1.0, 0.7, 0.6 ), 4.0
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.1,0.1,0.1 ), Vec3( 1.0, 0.1, 0.1 ), 8.0
         )
     );
 
@@ -617,7 +617,7 @@ Scene flamant(){
         Light & light = scene.lights[scene.lights.size() - 1];
         light.pos = Vec3( 0.0, 4.0, 0.0 );
         light.radius = 1.0f;
-        light.powerCorrection = 1.f;
+        light.powerCorrection = 15.f;
         light.type = LightType_Spherical;
         light.material = Vec3(1,0.2,0.3);
         light.isInCamSpace = false;
@@ -629,7 +629,7 @@ Scene flamant(){
         light.radius = 1.1f;
         light.powerCorrection = 80.f;
         light.type = LightType_Spherical;
-        light.material = Vec3(1,0.3,0.3);
+        light.material = Vec3(1,0.2,0.3);
         light.isInCamSpace = false;
     }
 

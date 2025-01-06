@@ -46,14 +46,15 @@ public:
         const std::vector< Color > & IMAGE,
         const std::vector< Color > & RAW_IMAGE,
         const std::vector< Color > & NORMAL,
-        const std::vector< float > & DEPTH
+        const std::vector< float > & DEPTH,
+        int w, int h
     ) {
         std::cout << "FRAGMENT FUNCTION NOT IMPLEMENTED IN POSTPROCESS" << std::endl;
     }
 
 };
 
-#define FRAGMENT fragment(int u, int v, Vec3 & OUT,const std::vector< Color > & IMAGE,const std::vector< Color > & RAW_IMAGE,const std::vector< Color > & NORMAL,const std::vector< float > & DEPTH)
+#define FRAGMENT fragment(int u, int v, Vec3 & OUT,const std::vector< Color > & IMAGE,const std::vector< Color > & RAW_IMAGE,const std::vector< Color > & NORMAL,const std::vector< float > & DEPTH, int w, int h)
 // effects
 
 namespace postprocess::kernel{
@@ -133,6 +134,21 @@ namespace postprocess::color{
             // needed 
             static PostProcessEffect* create(float v) {
                 return new Value(v);
+            }
+            
+            void FRAGMENT;
+        };
+        
+        class Vignette: public PostProcessEffect{
+        public:
+            float val;
+            float max_dist;
+
+            Vignette(float v, float m): val(v) , max_dist(m){}
+
+            // needed 
+            static PostProcessEffect* create(float v, float m) {
+                return new Vignette(v, m);
             }
             
             void FRAGMENT;

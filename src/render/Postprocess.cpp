@@ -35,7 +35,9 @@ void postProcessSquare(Renderer & renderer, PostProcessEffect & posteffect, int 
                 renderer.result_image,
                 renderer.image,
                 renderer.screen_space_normals,
-                renderer.screen_space_depth
+                renderer.screen_space_depth,
+                posteffect.w,
+                posteffect.h
             );
             
             renderer.workspace[u + v * posteffect.w] = Color(out);
@@ -48,7 +50,6 @@ void postProcessSquare(Renderer & renderer, PostProcessEffect & posteffect, int 
 
 void PostProcessEffect::postProcessMultithreaded(Renderer & renderer){
     const unsigned int area_size = 40;
-    if (!renderer.silent) std::cout << "Number of cores:  \033[31m" << std::thread::hardware_concurrency() << "\033[36m"<< std::endl;
 
     int n_square_x = renderer.w / area_size;
     int rest_x = renderer.w % area_size;
@@ -133,7 +134,9 @@ void PostProcessEffect::postProcessSinglethreaded(Renderer& renderer){
                 renderer.result_image,
                 renderer.image,
                 renderer.screen_space_normals,
-                renderer.screen_space_depth
+                renderer.screen_space_depth,
+                renderer.h,
+                renderer.w
             );
             renderer.workspace[u + v * w] = Color(out);
         }
@@ -232,6 +235,23 @@ void postprocess::color::Contrast::FRAGMENT{
 
 void postprocess::color::Value::FRAGMENT{
     OUT = sampleBuffer(IMAGE, u, v) * val;
+}
+
+void postprocess::color::Vignette::FRAGMENT{
+
+    float f_u = u / (float)w;
+    float f_v = v/ (float)h;
+
+    float d = sqrt(
+        pow((f_u - 0.5), 2) +
+        pow((f_v - 0.5), 2)
+    );
+
+    OUT =
+        Vec3::lerp(sampleBuffer(IMAGE, u, v), Vec3(0.0),
+            std::clamp(d / max_dist + val, 0.0f, 1.0f)
+        )
+    ;
 }
 
 

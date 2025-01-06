@@ -323,7 +323,7 @@ public:
 
     inline Vec3 computeColor(const LightingData & l) const override{
         return Vec3::lerp(
-            l.scatter_result + Vec3(0.03, 0.0, 0.0),
+            l.scatter_result * 2.0 + Vec3(0.12, 0.0, 0.0),
             diffuse_color,
             std::clamp(std::pow(Vec3::dot(l.view, -l.normal), 10.0), 0.0, 1.0)
         );
