@@ -492,7 +492,7 @@ Scene flamant(){
 
     int flamantMat = scene.addMaterial(
         FlamantMaterial::create(
-            Vec3( 0.0,0.0,0.0 ), Vec3( 1.0,0.0,0.0 ), Vec3( 0.2,0.2,0.2 ), 1.1
+            Vec3( 0.0,0.0,0.0 ), Vec3( 0.82,0.15,1.0 ), Vec3( 0.2,0.2,0.2 ), 1.1
         )
     );
 
@@ -594,6 +594,8 @@ Scene flamant(){
     Mesh mesh;
     mesh.loadOFF("./models/flamant/flamant.off");
     mesh.scale(Vec3(0.01));
+    mesh.rotate_y(90);
+    mesh.translate(Vec3(-8.0, 0.0, -7.1));
     mesh.build_arrays();
     mesh.material_id = flamantMat;
     scene.meshes.push_back(mesh);
@@ -619,7 +621,7 @@ Scene flamant(){
         light.radius = 1.0f;
         light.powerCorrection = 15.f;
         light.type = LightType_Spherical;
-        light.material = Vec3(1,0.2,0.3);
+        light.material = Vec3( 0.90,0.32,1.0 );
         light.isInCamSpace = false;
     }
     {
@@ -629,7 +631,7 @@ Scene flamant(){
         light.radius = 1.1f;
         light.powerCorrection = 80.f;
         light.type = LightType_Spherical;
-        light.material = Vec3(1,0.2,0.3);
+        light.material = Vec3( 0.89,0.25,1.0 );
         light.isInCamSpace = false;
     }
 
