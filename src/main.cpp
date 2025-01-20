@@ -49,8 +49,8 @@ using namespace std;
 // -------------------------------------------
 
 static GLint window;
-static unsigned int SCREENWIDTH = 1920;
-static unsigned int SCREENHEIGHT = 1080;
+static unsigned int SCREENWIDTH = 480;
+static unsigned int SCREENHEIGHT = 480;
 static Camera camera;
 static bool mouseRotatePressed = false;
 static bool mouseMovePressed = false;
@@ -135,7 +135,7 @@ void setup_renderer(){
         50
     );*/
     renderer = Renderer(
-        1920, 1080,
+        480, 480,
         100
     );
     renderer << postprocess::color::Vignette::create(0.0, 0.7)
