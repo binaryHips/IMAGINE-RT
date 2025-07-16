@@ -14,7 +14,7 @@
 struct RayResult {
     Vec3 color = Vec3(0, 0, 0);
     Vec3 normal = Vec3(0, 0, 0);
-    float depth = 0;
+    float depth = 0.0f;
 
     RayResult() = default;
 };
@@ -121,7 +121,7 @@ public:
             }
         }
 
-        printf( //Ansi escape codes (it's fucking ugly here but pretty as a print!) TODO maybe use a library for pretty printing idk
+        printf( //Ansi escape codes (it's fucking ugly here but pretty as a print!) TODO maybe make a small  personal lib for pretty printing idk
 "\n\n\033[36m### Scene \033[31m%s\033[36m ###\
 \n\t\033[4m|spheres | quads | meshes (triangles) | lights |\
 \n\t\033[4m|%7i |%6i |%7i %10i  |%7i |\033[0m\

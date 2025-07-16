@@ -135,12 +135,12 @@ void setup_renderer(){
         50
     );*/
     renderer = Renderer(
-        1920, 1080,
-        100
+        720, 720,
+        30
     );
-    renderer << postprocess::color::Vignette::create(0.0, 0.7)
-        << postprocess::color::Value::create(1.3)
-
+    //renderer << postprocess::color::Vignette::create(0.0, 0.7)
+    //    << postprocess::color::Value::create(1.3)
+    renderer << postprocess::utils::Depth::create()
     ;
 
     //renderer << postprocess::utils::Depth::create();

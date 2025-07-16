@@ -9,9 +9,11 @@
 #include <algorithm>
 
 
-static float randomUnitFloat()
+static float randomUnitFloat(bool reset = false)
 {   // in (-1, 1)
     static thread_local std::mt19937 rng(std::random_device{}());
+    if (reset) rng.seed();
+
     return (float)(rng()) * (2.0 / (float)(rng.max())) - 1.0;
 }
 
@@ -43,7 +45,7 @@ struct Light {
 
     void draw() const { // simple debug draw for volume of light
 
-        glPointSize(5);   
+        glPointSize(5);
         glColor3f(0.1f, 0.1f, 1.0f);
         glBegin(GL_POINTS);
 

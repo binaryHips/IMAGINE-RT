@@ -97,10 +97,15 @@ void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int p
 
     static thread_local std::mt19937 rng(std::random_device{}());
 
+    rng.seed();
+    randomUnitFloat(true); // reset the generator used for float
+
     Vec3 pos = cameraSpaceToWorldSpace(inv_model_view.data(), Vec3(0,0,0) );
     Vec3 dir;
     int p;
     RayResult acc;
+    acc.depth = FLT_MAX;
+
     for (int y=pos_y; y<pos_y+sizeY; y++){
         for (int x = pos_x; x<pos_x+sizeX; x++) {
             acc = RayResult();
@@ -117,10 +122,9 @@ void ray_trace_square(Renderer & renderer, const Scene & scene, int pos_x, int p
                 RayResult res = scene.rayTrace( Ray(pos , dir) );
                 acc.color += res.color;
                 acc.normal += res.normal;
-                acc.depth = std::min(acc.depth, res.depth);
+                acc.depth = res.depth;
             }
 
-            
             renderer.image[p] = Color(acc.color / renderer.nsamples);
             renderer.screen_space_normals[p] = Color(acc.normal / renderer.nsamples);
             renderer.screen_space_depth[p] = acc.depth;
