@@ -60,12 +60,19 @@ realtimeRenderer
 
 With all those optimizations and improvements, our CPU raytracer is now perfectly capable of low-resolution realtime rendering of simple scenes. (and near-realtime rendering of more complexe ones)
 
-
+Video is sped up 1.5 times. FPS counter is accurate.
 
 [![Watch the video](https://i.sstatic.net/Vp2cE.png)](https://github.com/user-attachments/assets/dfab4c2e-9bab-417f-a64b-a545e33d025c)
 
 
 
+## How to use
 
+First, clone and build using the makefile. You may get errors because of missing openGL dependencies. In this case, install what it asks for.
 
+One you run the program, look at the console. an helper message shows the list of controls, and the scene statistics appear.
+
+When you start a render, a progress update appears inside the console.
+
+Enjoy !
 
