@@ -26,7 +26,7 @@ The rendering takes (literally) full advantage of multi-core CPUs. Each render i
 
 ### KD-Tree acceleration
 
-In order to speed up complex, triangulated meshes rendering, An acceleration structure called a KD-Tree was implemented. This allows collision detection (= finding, if it exists, the nearest colliding triangle in the scene) to be done much faster, and most importantly, to increase only logarithmically when the tricount goes up.
+In order to speed up complex, triangulated meshes rendering, An acceleration structure called a KD-Tree was implemented. This allows collision detection (= finding, if it exists, the nearest colliding triangle in the scene) to be done much faster, and most importantly, to increase only logarithmically when the tricount goes up (this is what keeps 100k triangles renders inside of the minute-long realm).
 
 This implementation uses a scene-wide tree (as opposed to each triangle mesh having its own tree). This is faster, but it would not be ideal if we wanted to move meshes around or add/remove them at runtime, as the tree would need to be recomputed each update.
 
@@ -41,14 +41,14 @@ naïve approach (testing each triangle intersection)            |  acceleration 
 
 The program stores the rendered linear Z-Buffer, aswell as the screen-space normals. The programmer is able to use them inside of post-processing effects. Each renderer has a post-processing pipeline, which is an array of effects to be applied in order to the rendered image :
 ```cpp
-realtime_renderer = Renderer(
+realtimeRenderer = Renderer(
     360, 360, // resolution
     1 // sample count (rays per pixel)
 );
-realtime_renderer.silent = true; // do not print progress while rendering
+realtimeRenderer.silent = true; // do not print progress while rendering
 
  // post processing // 
-realtime_renderer
+realtimeRenderer
   << postprocess::denoise::Similarity::create(1.0) // adds a base denoiser effect to the renderer
   << postprocess::color::Value::create(1.3) // adds a value offset effect to the renderer
   << postprocess::blur::Convolve::create(5, postprocess::kernel::GAUSSIAN_5_5) // adds a gaussian blur to the renderer;
@@ -56,4 +56,16 @@ realtime_renderer
 ;
 ```
 
-### Post-processing pipeline
+### Realtime preview
+
+With all those optimizations and improvements, our CPU raytracer is now perfectly capable of low-resolution realtime rendering of simple scenes. (and near-realtime rendering of more complexe ones)
+
+
+
+[![Watch the video](https://i.sstatic.net/Vp2cE.png)](https://github.com/user-attachments/assets/dfab4c2e-9bab-417f-a64b-a545e33d025c)
+
+
+
+
+
+
