@@ -11,10 +11,10 @@ No generative AI was used in the making of this program.
 ## Features
 
 ### 3D Ray-traced rendering
-Render of a dragon, 100k polys, 2 lights, 60 raysper pixel, 5 bounces per ray, 6 shadow rays per bounce
+Render of a dragon, 100k polys, 2 lights, 60 rays per pixel, 5 bounces per ray, 6 shadow rays per bounce
 <img width="1594" height="896" alt="Render of a dragon, 100k polys, 2 lights, 60 raysper pixel, 5 bounces per ray, 6 shadow rays per bounce" src="https://github.com/user-attachments/assets/891eb2a2-0ae2-4c03-8f71-d1c61b5a1dba" />
 
-A codebase was given with basic opengl code and structure for the non-raytraced preview. We had to create the ray-tracing system and every collision function from scratch, aswell as implement an acceleration structure for efficient triangulated meshes rendering.
+A codebase was given as a starting point, with basic opengl code and structure for the non-raytraced preview. We had to create the ray-tracing system and every collision function from scratch, aswell as implement an acceleration structure for efficient triangulated meshes rendering.
 
 Everything that comes next except the KD-Tree was not in the project's original goals, but were added by me as I felt like taking this project to the next level.
 
@@ -22,7 +22,7 @@ Everything that comes next except the KD-Tree was not in the project's original 
 Reflexive bird, 5k polys, 1 lights, 30 raysper pixel, 5 bounces per ray, 6 shadow rays per bounce
 <img width="1449" height="814" alt="Reflexive bird, 5k polys, 1 lights, 30 raysper pixel, 5 bounces per ray, 6 shadow rays per bounce" src="https://github.com/user-attachments/assets/e4b29f96-3bf9-43f5-89cb-443ee03f8594" />
 
-The rendering takes (literally) full advantage of multi-core CPUs. Each render is broken down into small blocks of pixels, and each block is rendered by its own thread. The current setting creates rather small blocks, which saturate the CPU's scheduler, thus giving speed increases of more than the core count (while crashing everything else in the meantime... This can be removed by changing the block size).
+The rendering takes (literally) full advantage of multi-core CPUs. Each render is broken down into small blocks of pixels, and each block is rendered by its own thread. The current setting creates rather small blocks, which saturate the CPU's scheduler, thus giving speed increases of more than the core count (while crashing everything else in the meantime... This can be prevented by changing the block size).
 
 ### KD-Tree acceleration
 
@@ -39,7 +39,7 @@ naïve approach (testing each triangle intersection)            |  acceleration 
 
 ### Post-processing pipeline
 
-The program stores the rendered linear Z-Buffer, aswell as the screen-space normals. The programmer is able to use them inside of post-processing effects. Each renderer has a post-processing pipeline, which is an array of effects to be applied in order to the rendered image :
+The program stores the rendered linear Z-Buffer, aswell as the screen-space normals. The programmer is able to use them inside of post-processing effects. Each renderer has a post-processing pipeline, which is an array of effects to be applied in order to the rendered image. Here is an example of a realtime renderer setup.
 ```cpp
 realtimeRenderer = Renderer(
     360, 360, // resolution
