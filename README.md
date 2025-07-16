@@ -45,8 +45,15 @@ realtime_renderer = Renderer(
     360, 360, // resolution
     1 // sample count (rays per pixel)
 );
-realtime_renderer.silent = true; // does not print progress while rendering
-realtime_renderer << postprocess::denoise::Similarity::create(1.0); // adds a base denoiser effect to the renderer
+realtime_renderer.silent = true; // do not print progress while rendering
+
+ // post processing // 
+realtime_renderer
+  << postprocess::denoise::Similarity::create(1.0) // adds a base denoiser effect to the renderer
+  << postprocess::color::Value::create(1.3) // adds a value offset effect to the renderer
+  << postprocess::blur::Convolve::create(5, postprocess::kernel::GAUSSIAN_5_5) // adds a gaussian blur to the renderer;
+  << postprocess::color::Vignette::create(0.0, 0.7) // adds a vignette to the edge of the final image
+;
 ```
 
 ### Post-processing pipeline
